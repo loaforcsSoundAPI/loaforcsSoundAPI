@@ -1,7 +1,7 @@
 .vs/**
 */obj/**
 */bin/**
-obj/**
-build/**
+Packages/**
 .idea/
 loaforcsSoundAPI.sln.DotSettings.user
+*.csproj.user
