@@ -15,6 +15,8 @@ static class Debuggers {
 	internal static DebugLogSource SoundReplacementHandler;
 
 	internal static DebugLogSource MatchStrings;
+
+	internal static DebugLogSource ConditionsInfo;
 	
 	internal static void Bind(ConfigFile file) {
 		foreach(FieldInfo fieldInfo in typeof(Debuggers).GetFields(BindingFlags.Static | BindingFlags.NonPublic)) {

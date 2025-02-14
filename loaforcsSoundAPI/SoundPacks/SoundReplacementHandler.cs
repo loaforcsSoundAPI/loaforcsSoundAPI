@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using loaforcsSoundAPI.Core;
 using loaforcsSoundAPI.Reporting;
+using loaforcsSoundAPI.Reporting.Data;
 using loaforcsSoundAPI.SoundPacks.Conditions;
 using loaforcsSoundAPI.SoundPacks.Data;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
@@ -128,19 +129,23 @@ static class SoundReplacementHandler {
 			try {
 				className = new StackTrace(true).GetFrame(5).GetMethod().DeclaringType.Name;
 			} catch {
-				className = "<unknown>";
+				className = "unknown caller";
 			}
 
-			string humanFormatted = $"{name[TOKEN_PARENT_NAME]}:{name[TOKEN_OBJECT_NAME]}:{name[TOKEN_CLIP_NAME]}";
-			if (!SoundReportHandler.CurrentReport.AllMatchStrings.Contains(humanFormatted)) {
+			SoundReport.PlayedSound playedSound = new(
+				$"{name[TOKEN_PARENT_NAME]}:{name[TOKEN_OBJECT_NAME]}:{name[TOKEN_CLIP_NAME]}",
+				className,
+				source.playOnAwake
+			);
+			
+			if (!SoundReportHandler.CurrentReport.PlayedSounds.Any(playedSound.Equals)) {
 				// only add new unique ones
-				SoundReportHandler.CurrentReport.AllMatchStrings.Add($"{className} > {humanFormatted}");
-				SoundReportHandler.CurrentReport.RawMatchStrings.Add(humanFormatted);
-				Debuggers.MatchStrings?.Log(humanFormatted);
+				SoundReportHandler.CurrentReport.PlayedSounds.Add(playedSound);
+				
 			}
+			
+			Debuggers.MatchStrings?.Log(playedSound.MatchString);
 		}
-		
-		
 		
 		return true;
 	}

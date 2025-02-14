@@ -30,11 +30,6 @@ public static class SoundReportHandler {
 	static Action<StreamWriter, SoundReport> _reportSections = delegate { };
 
 	/// <summary>
-	/// Callback for initialising when a Sound report is started.
-	/// </summary>
-	public static Action OnStartReport { get; set; } = delegate { };
-
-	/// <summary>
 	/// Adds a custom report section to a generated report
 	/// </summary>
 	/// <param name="header">Description of section</param>
@@ -81,11 +76,9 @@ public static class SoundReportHandler {
 			WriteList("Registered Conditions", stream, SoundPackDataHandler.conditionFactories.Keys.ToList());
 		});
 		
-		AddReportSection("All Match Strings", (stream, report) => {
-			WriteList(null, stream, report.AllMatchStrings);
+		AddReportSection("All Played Sounds", (stream, report) => {
+			WriteList(null, stream, report.PlayedSounds.Select(it => it.FormatForReport()).ToList());
 		});
-
-		OnStartReport();
 	}
 
 	internal static void Bind(ConfigFile file) {

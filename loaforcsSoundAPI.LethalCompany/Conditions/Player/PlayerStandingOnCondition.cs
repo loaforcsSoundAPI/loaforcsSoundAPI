@@ -18,4 +18,5 @@ public class PlayerStandingOnCondition : Condition<PlayerContext> {
 		if (!GameNetworkManager.Instance) return false;
 		return EvaluateWithContext(new PlayerContext(GameNetworkManager.Instance.localPlayerController));
 	}
+	// todo: validate
 }

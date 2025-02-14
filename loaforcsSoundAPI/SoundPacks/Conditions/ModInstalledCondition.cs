@@ -7,10 +7,10 @@ using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 namespace loaforcsSoundAPI.SoundPacks.Conditions;
 
 [SoundAPICondition("mod_installed")]
-class ModInstalledCondition : Condition<DefaultConditionContext> {
+class ModInstalledCondition : Condition {
 	public string Value { get; private set; }
 	
-	protected override bool EvaluateWithContext(DefaultConditionContext context) {
+	public override bool Evaluate(IContext context) {
 		return BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(Value);
 	}
 	

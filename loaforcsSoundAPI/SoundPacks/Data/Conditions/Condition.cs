@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using loaforcsSoundAPI.Core;
 using loaforcsSoundAPI.Core.Data;
 
 namespace loaforcsSoundAPI.SoundPacks.Data.Conditions;
@@ -18,7 +19,14 @@ public abstract class Condition : IValidatable {
 	/// </summary>
 	protected SoundPack Pack => Parent.Pack;
 	
-	internal protected virtual void OnRegistered() {}
+	/// <summary>
+	/// When a condition is explicitly set to 'constant' it will compute the value on load.
+	/// The 
+	/// todo: For the config condition the Constant value should be implied to be true
+	/// </summary>
+	public bool? Constant { get; private set; }
+	
+	protected internal virtual void OnRegistered() {}
 	
 	/// <summary>
 	/// Evaluate Condition
@@ -136,6 +144,10 @@ public abstract class Condition : IValidatable {
 
 		return result == null;
 	}
+
+	protected static void LogDebug(string name, object message) {
+		Debuggers.ConditionsInfo?.Log($"({name}) {message}");
+	}
 }
 
 sealed class InvalidCondition(string type) : Condition {
@@ -153,6 +165,21 @@ sealed class InvalidCondition(string type) : Condition {
 				new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"'{type}' is not a valid condition type!")
 			];
 		}
+	}
+}
+
+sealed class ConstantCondition : Condition {
+	public static ConstantCondition TRUE = new(true);
+	public static ConstantCondition FALSE = new(false);
+	
+	public bool Value { get; private set; }
+
+	ConstantCondition(bool constant) {
+		Value = constant;
+	}
+	
+	public override bool Evaluate(IContext context) {
+		return Value;
 	}
 }
 

@@ -1,6 +1,9 @@
 ﻿using HarmonyLib;
 using loaforcsSoundAPI.LethalCompany.Conditions;
+using loaforcsSoundAPI.LethalCompany.Reporting;
 using loaforcsSoundAPI.Reporting;
+using loaforcsSoundAPI.Core.Util.Extensions;
+using loaforcsSoundAPI.LethalCompany.Conditions.Dungeon;
 
 namespace loaforcsSoundAPI.LethalCompany.Patches;
 
@@ -13,19 +16,14 @@ static class RoundManagerPatch {
 		string dungeonName = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name;
 		string moonName = StartOfRound.Instance.currentLevel.name;
 		
-		
-		
-		if(!loaforcsSoundAPILethalCompany.foundDungeonTypes.Contains(dungeonName))
-			loaforcsSoundAPILethalCompany.foundDungeonTypes.Add(dungeonName);
-		
-		if(!loaforcsSoundAPILethalCompany.foundMoonNames.Contains(moonName))
-			loaforcsSoundAPILethalCompany.foundMoonNames.Add(moonName);
+		LethalCompanySoundReport.foundDungeonTypes.AddUnique(dungeonName);
+		LethalCompanySoundReport.foundMoonNames.AddUnique(moonName);
 	}
 
 	[HarmonyPatch(nameof(RoundManager.Awake)), HarmonyPostfix, HarmonyWrapSafe]
 	static void ListenForPowerChanges() {
 		RoundManager.Instance.onPowerSwitch.AddListener(power => {
-			FacilityPowerStateCondition.CurrentPowerState = power;
+			DungeonPowerStateCondition.CurrentPowerState = power;
 		});
 	}
 }

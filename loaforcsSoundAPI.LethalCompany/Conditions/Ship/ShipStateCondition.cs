@@ -20,4 +20,5 @@ public class ShipStateCondition : Condition {
 			return Value == ShipStateType.LANDED;
 		}
 	}
+	// todo: validate
 }

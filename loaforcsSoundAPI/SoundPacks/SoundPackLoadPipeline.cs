@@ -15,6 +15,7 @@ using loaforcsSoundAPI.Core.JSON;
 using loaforcsSoundAPI.Core.Util;
 using loaforcsSoundAPI.Reporting;
 using loaforcsSoundAPI.SoundPacks.Data;
+using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -28,6 +29,13 @@ static class SoundPackLoadPipeline {
 	// todo: maybe remove
 	internal static event Action OnFinishedPipeline = delegate { };
 	static Dictionary<string, List<string>> mappings = [];
+
+	// todo: probably change this to be else where? soundinstance needs this for validation.
+	internal static Dictionary<string, AudioType> audioExtensions = new(){
+		{".ogg", AudioType.OGGVORBIS},
+		{".wav", AudioType.WAV},
+		{".mp3", AudioType.MPEG}
+	};
 	
 	// todo: clip sharing/single-loading
 	internal static async void StartPipeline() {
@@ -59,18 +67,25 @@ static class SoundPackLoadPipeline {
 		}
 		loaforcsSoundAPI.Logger.LogInfo($"(Step 2) Loading Sound-pack mappings ('{mappings.Count}') took {timer.ElapsedMilliseconds}ms");
 		timer.Restart();
-		
+
+		int skippedCollections = 0;
 		// Step 3: Load sound replacement collections data and begin loading audio
 		foreach (SoundPack pack in packs) {
 			
 			// Step 4: Enter foreach hell and fire async methods to begin UWR calls to load sounds.
 			foreach (SoundReplacementCollection collection in LoadSoundReplacementCollections(pack)) {
+				if (collection.Condition is ConstantCondition constant && constant.Value == false) {
+					Debuggers.SoundReplacementLoader?.Log($"skipping '{LogFormats.FormatFilePath(collection.FilePath)}' because collection is marked as constant and has a value of false.");
+					skippedCollections++;
+					continue;
+				}
+				
 				foreach (SoundReplacementGroup replacementGroup in collection.Replacements) {
 					SoundPackDataHandler.AddReplacement(replacementGroup);
 
 					// finally actually load sounds!
 					foreach (SoundInstance soundReplacement in replacementGroup.Sounds) {
-						webRequestOperations.Add(StartWebRequestOperation(pack, soundReplacement));
+						webRequestOperations.Add(StartWebRequestOperation(pack, soundReplacement, audioExtensions[Path.GetExtension(soundReplacement.Sound)]));
 					}
 				}
 			}
@@ -79,6 +94,7 @@ static class SoundPackLoadPipeline {
 		#region boring other stuff
         
 		int amountOfOperations = webRequestOperations.Count;
+		loaforcsSoundAPI.Logger.LogInfo($"(Step 3) Skipped {skippedCollections} collection(s)");
 		loaforcsSoundAPI.Logger.LogInfo($"(Step 3) Loading sound replacement collections took {timer.ElapsedMilliseconds}ms");
 		if (SoundReportHandler.CurrentReport != null) SoundReportHandler.CurrentReport.AudioClipsLoaded = amountOfOperations;
 		loaforcsSoundAPI.Logger.LogInfo($"(Step 4) Started loading {amountOfOperations} audio file(s)");
@@ -99,7 +115,7 @@ static class SoundPackLoadPipeline {
 		ConcurrentBag<Exception> threadPoolExceptions = [];
 		
 		// TODO: fix me, this is not good logic.
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 16; i++) {
 			new Thread(() => {
 				LoadSoundOperation operation;
 				while (queuedOperations.Count == 0) {
@@ -120,27 +136,15 @@ static class SoundPackLoadPipeline {
 					} catch (Exception exception) {
 						threadPoolExceptions.Add(exception);
 					}
-
-					Thread.Yield();
 				}
 				Interlocked.Decrement(ref _activeThreads);
 			}).Start();
 		}
 		
-		bool multithreadingEnabled = true;
 		// Step 5: Block game from progressing until all audio is loaded
 		while (webRequestOperations.Count > 0) {
 			foreach (LoadSoundOperation operation in webRequestOperations.ToList().Where(operation => operation.IsReady)) { // .ToList() here is so we can modify the current list without causing an exception
-				
-				if (multithreadingEnabled) {
-					queuedOperations.Enqueue(operation);
-				} else {
-					AudioClip clip = DownloadHandlerAudioClip.GetContent(operation.WebRequest);
-					operation.Sound.Clip = clip;
-					operation.WebRequest.Dispose();
-					Debuggers.SoundReplacementLoader?.Log("clip generated");
-				}
-
+				queuedOperations.Enqueue(operation); // give to threads to do work
 				webRequestOperations.Remove(operation);
 			}
 
@@ -190,7 +194,7 @@ static class SoundPackLoadPipeline {
 			Debuggers.SoundReplacementLoader?.Log("json loaded, validating");
 			List<IValidatable.ValidationResult> validationResult = pack.Validate();
 
-			if (IValidatable.LogAndCheckValidationResult($"loading '{file}'", validationResult)) {
+			if (IValidatable.LogAndCheckValidationResult($"loading '{file}'", validationResult, pack.Logger)) {
 				
 				ConfigFile configFile = loaforcsSoundAPI.GenerateConfigFile($"soundpack.{pack.Name}");
 				configFile.SaveOnConfigSet = false; // dumb setting that's enabled by default
@@ -218,7 +222,7 @@ static class SoundPackLoadPipeline {
 			SoundReplacementCollection collection = JSONDataLoader.LoadFromFile<SoundReplacementCollection>(file);
 			if(collection == null) continue; // json error
 			collection.Pack = pack;
-			if (!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", collection.Validate())) {
+			if (!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", collection.Validate(), pack.Logger)) {
 				continue;				
 			}
 
@@ -260,7 +264,7 @@ static class SoundPackLoadPipeline {
 				replacementGroup.Matches.AddRange(corrected);
 			}
 			
-			if (!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", groupValidations)) {
+			if (!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", groupValidations, pack.Logger)) {
 				continue;				
 			}
             
@@ -270,10 +274,10 @@ static class SoundPackLoadPipeline {
 		return collections;
 	}
 	
-	static LoadSoundOperation StartWebRequestOperation(SoundPack pack, SoundInstance sound) {
+	static LoadSoundOperation StartWebRequestOperation(SoundPack pack, SoundInstance sound, AudioType type) {
 		string fullPath = Path.Combine(pack.PackFolder, "sounds", sound.Sound);
 		
-		UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(fullPath, AudioType.OGGVORBIS);
+		UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(fullPath, type);
 
 		return new LoadSoundOperation(sound, www.SendWebRequest());
 	}

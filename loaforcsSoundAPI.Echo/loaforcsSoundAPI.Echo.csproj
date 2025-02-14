@@ -28,6 +28,7 @@
     <!-- Disable Publicizer Warnings -->
     <PropertyGroup>
         <NoWarn>$(NoWarn);CS0436</NoWarn>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <!-- Embed Debug Symbols for Easier Debugging -->

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using BepInEx.Logging;
 
 namespace loaforcsSoundAPI.Core.Data;
 
@@ -31,7 +32,7 @@ public interface IValidatable {
 
 	private static readonly StringBuilder _stringBuilder = new();
 	
-	internal static bool LogAndCheckValidationResult(string context, List<ValidationResult> results) {
+	internal static bool LogAndCheckValidationResult(string context, List<ValidationResult> results, ManualLogSource logger) {
 		if (results.Count == 0) {
 			return true;
 		}
@@ -75,18 +76,18 @@ public interface IValidatable {
 		_stringBuilder.Append(": ");
 			
 		if (fails != 0) {
-			loaforcsSoundAPI.Logger.LogError(_stringBuilder);
+			logger.LogError(_stringBuilder);
 		} else {
-			loaforcsSoundAPI.Logger.LogWarning(_stringBuilder);
+			logger.LogWarning(_stringBuilder);
 		}
 			
 		foreach (ValidationResult result in results) {
 			switch (result.Status) {
 				case ResultType.WARN:
-					loaforcsSoundAPI.Logger.LogWarning($"WARN: {result.Reason}");
+					logger.LogWarning($"WARN: {result.Reason}");
 					break;
 				case ResultType.FAIL:
-					loaforcsSoundAPI.Logger.LogError($"FAIL: {result.Reason}");
+					logger.LogError($"FAIL: {result.Reason}");
 					break;
 				default:
 					throw new ArgumentOutOfRangeException();

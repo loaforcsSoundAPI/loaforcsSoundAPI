@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -12,12 +7,6 @@ using loaforcsSoundAPI.Core;
 using loaforcsSoundAPI.Core.Patches;
 using loaforcsSoundAPI.Reporting;
 using loaforcsSoundAPI.SoundPacks;
-using loaforcsSoundAPI.SoundPacks.Conditions;
-using loaforcsSoundAPI.SoundPacks.Data;
-using loaforcsSoundAPI.SoundPacks.Data.Conditions;
-using loaforcsSoundAPI.Util.Extensions;
-using MonoMod.Cil;
-using UnityEngine;
 
 namespace loaforcsSoundAPI;
 
@@ -31,7 +20,7 @@ class loaforcsSoundAPI : BaseUnityPlugin {
 		_instance = this;
 		Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
 		Config.SaveOnConfigSet = false;
-
+		
 		Logger.LogInfo("Setting up config");
 		Debuggers.Bind(Config);
 		SoundReportHandler.Bind(Config);
@@ -44,8 +33,8 @@ class loaforcsSoundAPI : BaseUnityPlugin {
 		SoundAPI.RegisterAll(Assembly.GetExecutingAssembly());
 		
 		SoundReplacementHandler.Register();
-		
 		Config.Save();
+		
 		Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} by loaforc has loaded :3");
 	}
 

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using BepInEx;
 using loaforcsSoundAPI.Core.JSON;
 using loaforcsSoundAPI.Echo.Data;
@@ -33,10 +34,11 @@ static class CustomSoundsLoadPipeline {
 			SoundReplacementCollection collection = new(pack);
 			
 			EchoPreloader.Logger.LogInfo($"Loading Sound-Pack: {pack.Name}");
-			PopulateSoundReplacementCollection(collection, Path.Combine(modFolder, "CustomSounds"));
-            
-			SoundAPI.RegisterSoundPack(pack);
-			CustomSoundsPacks.Add(pack);
+			// technically i believe this is called after the splash screens are done, but it should be fine because it's done asynchronously and not on another thread?
+			PopulateSoundReplacementCollection(collection, Path.Combine(modFolder, "CustomSounds")).ContinueWith(_ => {
+				SoundAPI.RegisterSoundPack(pack);
+				CustomSoundsPacks.Add(pack);
+			});
 		}
 		
 		completeLoadingTimer.Stop();
@@ -44,9 +46,9 @@ static class CustomSoundsLoadPipeline {
 		EchoPreloader.Logger.LogInfo($"All done! Took {LoadTime}ms :3");
 	}
 
-	static void PopulateSoundReplacementCollection(SoundReplacementCollection parent, string path) {
+	async static Task PopulateSoundReplacementCollection(SoundReplacementCollection parent, string path) {
 		foreach (string audioFile in Directory.GetFiles(path, "*.wav", SearchOption.TopDirectoryOnly)) {
-			AudioClip clip = LoadAudioClip(audioFile);
+			AudioClip clip = await SoundAPI.LoadAudioFileAsync(audioFile);
 			(string clipName, int weight) = ParseFileName(Path.GetFileNameWithoutExtension(audioFile));
 
 			SoundReplacementGroup group = new(parent, [$"*:*:{clipName}"]);
@@ -61,33 +63,13 @@ static class CustomSoundsLoadPipeline {
 			EchoPreloader.Logger.LogDebug($"sourceObjectNameMatch: {sourceObjectNameMatch}");
 			
 			foreach (string audioFile in Directory.GetFiles(subDir, "*.wav", SearchOption.TopDirectoryOnly)) {
-				AudioClip clip = LoadAudioClip(audioFile);
+				AudioClip clip = await SoundAPI.LoadAudioFileAsync(audioFile);
 				(string clipName, int weight) = ParseFileName(Path.GetFileNameWithoutExtension(audioFile));
 
 				SoundReplacementGroup group = new(parent, [$"*:{sourceObjectNameMatch}:{clipName}"]);
 				SoundInstance sound = new(group, weight, clip);
 			}
 		}
-	}
-
-	// TODO: This should 100% be replaced with a method from SoundAPI when I finally get around to it.
-	static AudioClip LoadAudioClip(string path) {
-		using UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(path, AudioType.WAV);
-		request.SendWebRequest();
-
-		try {
-			while (!request.isDone) { Thread.Sleep(100); }
-
-			if (request.result != UnityWebRequest.Result.Success)
-				EchoPreloader.Logger.LogError($"AudioClip load failure on: {Path.GetFileName(path)}");
-			else {
-				return DownloadHandlerAudioClip.GetContent(request);
-			}
-		} catch (Exception) {
-			EchoPreloader.Logger.LogError($"AudioClip load failure on: {Path.GetFileName(path)}");
-		}
-
-		return null;
 	}
 	
 	static List<string> FindCustomSoundsSoundPacks() {

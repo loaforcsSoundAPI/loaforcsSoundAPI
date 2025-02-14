@@ -15,14 +15,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
-
-    <PropertyGroup>
-        <PackageId>LoafOrc.SoundAPI</PackageId>
-        <PackageProjectUrl>https://github.com/LoafOrc/loaforcsSoundAPI</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/LoafOrc/loaforcsSoundAPI</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <Authors>loaforc</Authors>
-    </PropertyGroup>
     
     <!-- Set NuGet Sources -->
     <PropertyGroup>

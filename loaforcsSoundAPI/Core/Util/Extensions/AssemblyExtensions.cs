@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace loaforcsSoundAPI.Util.Extensions;
+namespace loaforcsSoundAPI.Core.Util.Extensions;
 
 static class AssemblyExtensions {
 	internal static IEnumerable<Type> GetLoadableTypes(this Assembly assembly) {

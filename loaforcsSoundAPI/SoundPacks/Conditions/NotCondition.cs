@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace loaforcsSoundAPI.SoundPacks.Conditions;
 
 [SoundAPICondition("not")]
-class NotCondition : Condition<DefaultConditionContext> {
+class NotCondition : Condition {
 	[JsonProperty("condition")]
 	public Condition Condition { get; private set; }
     
@@ -17,7 +17,7 @@ class NotCondition : Condition<DefaultConditionContext> {
 		}
 	}
     
-	protected override bool EvaluateWithContext(DefaultConditionContext context) {
+	public override bool Evaluate(IContext context) {
 		if (Condition is InvalidCondition) return false;
 		return !Condition.Evaluate(context);
 	}

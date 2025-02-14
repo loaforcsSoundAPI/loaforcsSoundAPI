@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using loaforcsSoundAPI.Core.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -50,6 +51,7 @@ public class SoundPack : IValidatable {
 	}
 
 	public string Name { get; private set; }
+	public string GUID => Name; // todo: probably figure out a better way to do this.
 	
 	public string PackFolder { get; internal set; } // has to be internal as it is set not from a json property but elsewhere, kinda icky
     
@@ -59,6 +61,15 @@ public class SoundPack : IValidatable {
 	[field: NonSerialized]
 	readonly Dictionary<string, object> _configData = [];
 
+	ManualLogSource _logger;
+
+	public ManualLogSource Logger {
+		get {
+			if (_logger == null) _logger = BepInEx.Logging.Logger.CreateLogSource(GUID);
+			return _logger;
+		}
+	}
+	
 	internal bool TryGetConfigValue(string id, out object returnValue) {
 		returnValue = default;
 		if (!_configData.TryGetValue(id, out object data)) return false;

@@ -8,11 +8,24 @@ using UnityEngine;
 
 namespace loaforcsSoundAPI.Core;
 
-public class AudioSourceAdditionalData(AudioSource source) {
-	public AudioSource Source { get; } = source;
+/// <summary>
+/// Contains additional data for a specific audio source.
+/// </summary>
+public class AudioSourceAdditionalData {
+	internal AudioSourceAdditionalData(AudioSource source) {
+		Source = source;
+	}
+	
+	/// <summary>
+	/// AudioSource that this AdditonalData is describing.
+	/// </summary>
+	public AudioSource Source { get; private set; }
 	
 	internal SoundReplacementGroup ReplacedWith { get; set; }
 
+	/// <summary>
+	/// Current Context, may be null.
+	/// </summary>
 	public IContext CurrentContext { get; set; }
 	
 	internal void Update() {

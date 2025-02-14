@@ -6,7 +6,7 @@ namespace loaforcsSoundAPI.SoundPacks.Data.Conditions;
 
 public abstract class Conditional : IValidatable, IPackData {
 	public Condition Condition { get; set; }
-    
+	
 	public bool Evaluate(IContext context) {
 		if (Condition == null) return true;
 		return Condition.Evaluate(context);

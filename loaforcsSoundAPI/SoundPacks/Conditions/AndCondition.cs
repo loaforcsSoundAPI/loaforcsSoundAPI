@@ -1,38 +1,25 @@
 ﻿using System.Collections.Generic;
 using loaforcsSoundAPI.Core;
 using loaforcsSoundAPI.Core.Data;
+using loaforcsSoundAPI.Core.Util;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 
 namespace loaforcsSoundAPI.SoundPacks.Conditions;
 
 [SoundAPICondition("and")]
-class AndCondition : Condition<DefaultConditionContext> {
-	public Condition[] Conditions { get; private set; }
+class AndCondition : LogicGateCondition {
+	protected override string ValidateWarnMessage => "'and' condition has no conditions and will always return true!";
 
-	protected internal override void OnRegistered() {
-		foreach (Condition condition in Conditions) {
-			condition.Parent = Parent;
-			condition.OnRegistered();
-		}
+	public override bool Evaluate(IContext context) {
+		return And(Conditions, context);
 	}
+}
 
-	protected override bool EvaluateWithContext(DefaultConditionContext context) {
-		foreach (Condition condition in Conditions) {
-			if (condition is InvalidCondition) return false;
-			if (!condition.Evaluate(context))
-				return false; // short-cut
-		}
+[SoundAPICondition("nand")]
+class NandCondition : LogicGateCondition {
+	protected override string ValidateWarnMessage => "'nand' condition has no conditions and will always return false!";
 
-		return true;
-	}
-
-	public override List<IValidatable.ValidationResult> Validate() {
-		if (Conditions.Length == 0) {
-			return [
-				new IValidatable.ValidationResult(IValidatable.ResultType.WARN, "'and' condition has no conditions and will always return true!")
-			];
-		}
-
-		return [];
+	public override bool Evaluate(IContext context) {
+		return !And(Conditions, context);
 	}
 }

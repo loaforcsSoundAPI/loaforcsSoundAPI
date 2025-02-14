@@ -6,6 +6,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using loaforcsSoundAPI.Echo.Patches;
 using loaforcsSoundAPI.Reporting;
+using loaforcsSoundAPI.Reporting.Data;
 using Mono.Cecil;
 
 namespace loaforcsSoundAPI.Echo;
@@ -19,7 +20,7 @@ public static class EchoPreloader {
 
 	internal static bool CustomSoundsPatched = false;
 
-	static Harmony _harmony;
+	static Harmony _harmony = null!;
 	
 	public static void Finish() {
 		Logger.LogInfo($"Loading Echo v{MyPluginInfo.PLUGIN_VERSION}");
@@ -47,6 +48,8 @@ public static class EchoPreloader {
 			
 			SoundReportHandler.WriteList("CustomSounds packs", stream, CustomSoundsLoadPipeline.CustomSoundsPacks.Select(it => it.Name).ToList());
 		});
+		
+		
 	}
 
 	internal static void TryPatchCustomSounds() {

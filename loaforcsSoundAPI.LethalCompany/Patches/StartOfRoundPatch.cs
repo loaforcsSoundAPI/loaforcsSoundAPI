@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using loaforcsSoundAPI.LethalCompany.Conditions;
+using loaforcsSoundAPI.LethalCompany.Reporting;
 using loaforcsSoundAPI.Reporting;
+using loaforcsSoundAPI.Core.Util.Extensions;
 
 namespace loaforcsSoundAPI.LethalCompany.Patches;
 
@@ -16,8 +18,19 @@ static class StartOfRoundPatch {
 		if(SoundReportHandler.CurrentReport == null) return;
 
 		foreach (FootstepSurface surface in StartOfRound.Instance.footstepSurfaces) {
-			if(!loaforcsSoundAPILethalCompany.foundFootstepSurfaces.Contains(surface))
-				loaforcsSoundAPILethalCompany.foundFootstepSurfaces.Add(surface);
+			LethalCompanySoundReport.foundFootstepSurfaces.AddUnique(surface);
 		}
 	}
+
+	// todo
+	/*
+	[HarmonyPostfix, HarmonyPatch(nameof(StartOfRound.OnPlayerConnectedClientRpc)), HarmonyWrapSafe]
+	static void PlayShipSpeakerOnClientJoin(StartOfRound __instance) {
+		if(!SoundFixesConfig.PlayShipSpeakerOnClientJoin.Value) return;
+		if(__instance.IsServer || __instance.IsHost) return;
+		if (__instance.gameStats.daysSpent == 0) {
+			__instance.speakerAudioSource.PlayOneShot(__instance.shipIntroSpeechSFX);
+		}
+	}
+	*/
 }

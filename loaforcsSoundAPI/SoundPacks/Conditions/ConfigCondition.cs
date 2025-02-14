@@ -7,11 +7,11 @@ using UnityEngine.UIElements;
 namespace loaforcsSoundAPI.SoundPacks.Conditions;
 
 [SoundAPICondition("config")]
-class ConfigCondition : Condition<DefaultConditionContext> {
+class ConfigCondition : Condition {
 	public string Config { get; private set; }
 	public object Value { get; private set; }
 	
-	protected override bool EvaluateWithContext(DefaultConditionContext context) {
+	public override bool Evaluate(IContext context) {
 		if (!Pack.TryGetConfigValue(Config, out object data)) return false;
 		
 		// this is bad

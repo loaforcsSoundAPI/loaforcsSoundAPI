@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -6,8 +7,9 @@ using loaforcsSoundAPI.Core.Networking;
 using loaforcsSoundAPI.SoundPacks;
 using loaforcsSoundAPI.SoundPacks.Data;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
-using loaforcsSoundAPI.Util.Extensions;
+using loaforcsSoundAPI.Core.Util.Extensions;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace loaforcsSoundAPI;
 
@@ -21,6 +23,27 @@ public static class SoundAPI {
 	public const string PLUGIN_GUID = MyPluginInfo.PLUGIN_GUID;
 	
 	internal static NetworkAdapter CurrentNetworkAdapter { get; private set; }
+
+	/// <summary>
+	/// Loads an audio clip from a given file. 
+	/// </summary>
+	/// <exception cref="NotImplementedException">Thrown if an unsupported audio file extension is passed.</exception>
+	/// <exception cref="FileNotFoundException">File not found</exception>
+	/// <remarks></remarks>
+	/// <returns>AudioClip</returns>
+	public static async Task<AudioClip> LoadAudioFileAsync(string fullPath) {
+		// todo: this is effectively duplicated code from the soundpack load pipeline, look at combining the code from there into this.
+
+		if (!File.Exists(fullPath)) throw new FileNotFoundException($"'{fullPath}' not found.");
+		if (!SoundPackLoadPipeline.audioExtensions.ContainsKey(Path.GetExtension(fullPath))) throw new NotImplementedException($"Audio file extension: '{Path.GetExtension(fullPath)}' is not implemented.");
+		
+		UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(fullPath, SoundPackLoadPipeline.audioExtensions[Path.GetExtension(fullPath)]);
+		await request.SendWebRequest();
+		
+		AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
+		request.Dispose();
+		return clip;
+	}
 	
 	/// <summary>
 	/// Finds all types marked with [SoundAPICondition] and registers them with a default factory method.
@@ -33,7 +56,7 @@ public static class SoundAPI {
 			if(type.IsNested) continue;
 
 			foreach (SoundAPIConditionAttribute conditionAttribute in type.GetCustomAttributes<SoundAPIConditionAttribute>()) {
-				if (type.BaseType == null || (type.BaseType != typeof(Condition) && type.BaseType.GetGenericTypeDefinition() != typeof(Condition<>))) {
+				if (!typeof(Condition).IsAssignableFrom(type)) {
 					loaforcsSoundAPI.Logger.LogError($"Condition: '{type.FullName}' has been marked with [SoundAPICondition] but does not extend Condition!");
 					continue;
 				}
@@ -42,7 +65,7 @@ public static class SoundAPI {
 				if (info == null) {
 					loaforcsSoundAPI.Logger.LogError(
 						$"Condition: '{type.FullName}' has no valid constructor! It must have a constructor with no parameters! " +
-						$"If you need extra parameters do not mark it with [SoundAPICondition] and Register it manually."
+						$"If you need extra parameters do not mark it with [SoundAPICondition] and register it manually."
 					);
 					continue;
 				}
