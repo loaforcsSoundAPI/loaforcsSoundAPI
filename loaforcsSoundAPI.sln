@@ -2,10 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "loaforcsSoundAPI", "loaforcsSoundAPI\loaforcsSoundAPI.csproj", "{DEBBEFBD-97F6-4276-AEA8-9466118ECFBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "loaforcsSoundAPI.LethalCompany", "loaforcsSoundAPI.LethalCompany\loaforcsSoundAPI.LethalCompany.csproj", "{64426849-D8F2-433B-943D-46048A182323}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "loaforcsSoundAPI.Echo", "loaforcsSoundAPI.Echo\loaforcsSoundAPI.Echo.csproj", "{0A603E39-D1DC-4F11-BCE1-4772AB47DA8D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,13 +12,5 @@ Global
 		{DEBBEFBD-97F6-4276-AEA8-9466118ECFBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEBBEFBD-97F6-4276-AEA8-9466118ECFBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEBBEFBD-97F6-4276-AEA8-9466118ECFBA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{64426849-D8F2-433B-943D-46048A182323}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{64426849-D8F2-433B-943D-46048A182323}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{64426849-D8F2-433B-943D-46048A182323}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{64426849-D8F2-433B-943D-46048A182323}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A603E39-D1DC-4F11-BCE1-4772AB47DA8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A603E39-D1DC-4F11-BCE1-4772AB47DA8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A603E39-D1DC-4F11-BCE1-4772AB47DA8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A603E39-D1DC-4F11-BCE1-4772AB47DA8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
