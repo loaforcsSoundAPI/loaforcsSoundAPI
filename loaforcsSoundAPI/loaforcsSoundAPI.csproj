@@ -78,7 +78,7 @@ internal static class MyPluginInfo {
         <Exec Command="dotnet tcli build --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --package-version $(Version)"  />
     </Target>
 
-    <Target Name="PublishThunderstore" AfterTargets="PostBuildEvent">
+    <Target Name="PublishThunderstore">
         <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --file &quot;$(ProjectDir)../loaforc-loaforcsSoundAPI-$(Version).zip&quot;" />
     </Target>
 </Project>
