@@ -252,6 +252,21 @@ static class SoundPackLoadPipeline {
 				
 				// validate match strings
 				List<IValidatable.ValidationResult> validationResults = replacementGroup.Validate();
+				
+				// Convert mappings
+				foreach (string match in replacementGroup.Matches.ToList()) { // .ToList to avoid list exception or whatever
+					if(!match.StartsWith("#")) continue;
+
+					replacementGroup.Matches.Remove(match);
+
+					if (mappings.TryGetValue(match[1..], out List<string> mappedStrings)) {
+						replacementGroup.Matches.AddRange(mappedStrings);
+					}
+					else {
+						validationResults.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Mapping: '{match}' has not been found. If it's part of a soft dependency, make sure to use a 'mod_installed' condition with 'constant' enabled."));
+					}
+				}
+				
 				if (validationResults.Count != 0) {
 					groupValidations.AddRange(validationResults);
 					continue;
@@ -268,13 +283,7 @@ static class SoundPackLoadPipeline {
 					continue;
 				}
 				
-				// Convert mappings
-				foreach (string match in replacementGroup.Matches.ToList()) { // .ToList to avoid list exception or whatever
-					if(!match.StartsWith("#")) continue;
-
-					replacementGroup.Matches.Remove(match);
-					replacementGroup.Matches.AddRange(mappings[match[1..]]);
-				}
+				
 				
 				// Imply "*:object:clip" from "object:clip"
 				List<string> corrected = replacementGroup.Matches.Select(match => match.Split(":").Length == 2 ? $"*:{match}" : match).ToList();
