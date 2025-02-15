@@ -96,6 +96,10 @@ public static class JSONDataLoader {
 	}
 	
 	class IncludePrivatePropertiesContractResolver : DefaultContractResolver {
+		internal IncludePrivatePropertiesContractResolver() {
+			NamingStrategy = new SnakeCaseNamingStrategy();
+		}
+		
 		protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization) {
 			JsonProperty property = base.CreateProperty(member, memberSerialization);
  

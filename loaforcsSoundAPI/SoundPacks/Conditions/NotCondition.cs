@@ -7,7 +7,6 @@ namespace loaforcsSoundAPI.SoundPacks.Conditions;
 
 [SoundAPICondition("not")]
 class NotCondition : Condition {
-	[JsonProperty("condition")]
 	public Condition Condition { get; private set; }
     
 	protected internal override void OnRegistered() {

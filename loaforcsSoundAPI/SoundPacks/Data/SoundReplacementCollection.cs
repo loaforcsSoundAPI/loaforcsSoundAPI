@@ -22,7 +22,6 @@ public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData
 	[field:NonSerialized]
 	public override SoundPack Pack { get; set; }
 	
-	[JsonProperty("update_every_frame")]
 	public bool UpdateEveryFrame { get; private set; }
     
     
