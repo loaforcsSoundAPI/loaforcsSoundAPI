@@ -79,6 +79,9 @@ internal static class MyPluginInfo {
     </Target>
 
     <Target Name="PublishThunderstore">
-        <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --file thunderstore-build/loaforc-loaforcsSoundAPI-$(Version).zip" />
+        <ItemGroup>
+            <PackageFiles Include="$(SolutionDir)\**\*.*;"/>
+        </ItemGroup>
+        <Message Text="%(PackageFiles.FullPath)"/>
     </Target>
 </Project>
