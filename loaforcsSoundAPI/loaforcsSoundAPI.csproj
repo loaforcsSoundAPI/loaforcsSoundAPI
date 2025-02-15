@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <!-- BepInEx Properties -->
     <PropertyGroup>
         <AssemblyName>me.loaforc.soundapi</AssemblyName>
         <Product>loaforcsSoundAPI</Product>
         <!-- Change to whatever version you're currently on. -->
-        <Version>1.1.6</Version>
+        <Version>2.0.0</Version>
     </PropertyGroup>
 
     <!-- Project Properties -->
@@ -15,18 +15,13 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
-
+    
     <!-- Set NuGet Sources -->
     <PropertyGroup>
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
             https://nuget.bepinex.dev/v3/index.json
         </RestoreAdditionalProjectSources>
-    </PropertyGroup>
-
-    <!-- Disable Publicizer Warnings -->
-    <PropertyGroup>
-        <NoWarn>$(NoWarn);CS0436</NoWarn>
     </PropertyGroup>
 
     <!-- Embed Debug Symbols for Easier Debugging -->
@@ -39,25 +34,51 @@
         -->
         <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DocumentationFile>bin\Release\loaforcsSoundAPI.xml</DocumentationFile>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
 
     <!-- Primary Package References -->
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" PrivateAssets="all" />
-		<PackageReference Include="LethalCompany.GameLibs.Steam" Version="*-*" Publicize="true" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all"/>
+        <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all"/>
+        <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" PrivateAssets="all"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-        <PackageReference Include="UniTask" Version="2.5.4" />
-        <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
     </ItemGroup>
 
-	<Target Name="CopyFiles" DependsOnTargets="PostBuildEvent" AfterTargets="PostBuildEvent">
-		<Message Importance="high" Text="Copying to local lethal company install" />
-		<Copy SourceFiles="$(TargetPath)" DestinationFolder="D:\Lethal Company\BepInEx\plugins" />
-	</Target>
+    <Target Name="AddGeneratedFile" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
+        <PropertyGroup>
+            <GeneratedText><![CDATA[
+namespace $(RootNamespace)%3B
+internal static class MyPluginInfo {
+    public const string PLUGIN_GUID = "$(AssemblyName)"%3B
+    public const string PLUGIN_NAME = "$(Product)"%3B
+    public const string PLUGIN_VERSION = "$(Version)"%3B
+}
+      ]]></GeneratedText>
+            <GeneratedFilePath>$(IntermediateOutputPath)MyPluginInfo.cs</GeneratedFilePath>
+        </PropertyGroup>
+        <ItemGroup>
+            <Compile Include="$(GeneratedFilePath)" />
+            <FileWrites Include="$(GeneratedFilePath)" />
+        </ItemGroup>
+        <WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true" />
+    </Target>
+    
+    <ItemGroup>
+      <None Remove="Thunderstore\**" />
+    </ItemGroup>
+
+    <Target Name="PackThunderstore" AfterTargets="PostBuildEvent" Condition="$(Configuration) == 'Release'">
+        <Exec Command="tcli build --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --package-version $(Version)"  />
+    </Target>
+
+    <Target Name="PublishThunderstore" DependsOnTargets="SetPluginVersion">
+        <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --file $(ProjectDir)Packages/*.zip" />
+    </Target>
 </Project>
