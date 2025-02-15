@@ -28,8 +28,6 @@ static class SoundReplacementHandler {
 	static readonly string[] _suffixesToRemove = ["(Clone)"];
 	static readonly Dictionary<int, string> _cachedObjectNames = [];
 	static readonly StringBuilder _builder = new();
-
-	internal static readonly DefaultConditionContext DEFAULT_CONTEXT = new();
 	
 	internal static void Register() {
 		SceneManager.sceneLoaded += (scene, _) => {
@@ -61,7 +59,7 @@ static class SoundReplacementHandler {
 
 		if (
 			!TryProcessName(ref name, source, clip) || 
-			!TryGetReplacementClip(name, out SoundReplacementGroup group, out AudioClip newClip, sourceData.CurrentContext ?? DEFAULT_CONTEXT)
+			!TryGetReplacementClip(name, out SoundReplacementGroup group, out AudioClip newClip, sourceData.CurrentContext ?? DefaultConditionContext.DEFAULT)
 		) {
 			ArrayPool<string>.Shared.Return(name);
 			return false;

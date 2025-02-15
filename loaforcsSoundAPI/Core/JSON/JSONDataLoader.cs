@@ -127,9 +127,8 @@ public static class JSONDataLoader {
 			serializer.Populate(jsonObject.CreateReader(), condition);
 
 			if (condition.Constant == true) {
-				// todo: cache default condition context
 				return 
-					condition.Evaluate(new DefaultConditionContext()) ? 
+					condition.Evaluate(DefaultConditionContext.DEFAULT) ? 
 					ConstantCondition.TRUE : 
 					ConstantCondition.FALSE;
 			}

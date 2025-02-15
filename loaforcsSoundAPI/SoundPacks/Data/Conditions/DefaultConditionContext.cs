@@ -5,4 +5,8 @@
 /// </summary>
 public interface IContext;
 
-class DefaultConditionContext : IContext;
+class DefaultConditionContext : IContext {
+    DefaultConditionContext() { }
+
+    internal static readonly DefaultConditionContext DEFAULT = new();
+}

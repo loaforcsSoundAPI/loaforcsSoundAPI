@@ -60,7 +60,7 @@ public class AudioSourceAdditionalData {
 		
 		Debuggers.UpdateEveryFrame?.Log($"success: updating every frame for {Source.name}");
 
-		IContext context = CurrentContext ?? SoundReplacementHandler.DEFAULT_CONTEXT;
+		IContext context = CurrentContext ?? DefaultConditionContext.DEFAULT;
 		
 		SoundInstance sound = ReplacedWith.Sounds.FirstOrDefault(x => x.Evaluate(context));
 		if(sound == null) return;
