@@ -78,10 +78,11 @@ internal static class MyPluginInfo {
         <Exec Command="dotnet tcli build --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --package-version $(Version)"  />
     </Target>
 
-    <Target Name="PublishThunderstore">
+    <Target Name="PublishThunderstore" AfterTargets="PostBuildEvent">
         <ItemGroup>
-            <PackageFiles Include="$(SolutionDir)\**\*.*;"/>
+            <DataFiles Include="$(SolutionDir)**\*.zip" />
         </ItemGroup>
-        <Message Text="%(PackageFiles.FullPath)"/>
+        
+        <Message Importance="high" Text="@(DataFiles)" />
     </Target>
 </Project>
