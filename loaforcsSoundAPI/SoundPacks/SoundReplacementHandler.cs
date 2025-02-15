@@ -174,7 +174,7 @@ static class SoundReplacementHandler {
 
 		Debuggers.SoundReplacementHandler?.Log("sound group that matches");
         
-		group = possibleCollections[Random.Range(0, possibleCollections.Count)];
+		group = possibleCollections[Random.Range(0, possibleCollections.Count + 1)];
 		List<SoundInstance> replacements = group.Sounds.Where(it => it.Evaluate(context)).ToList();
 		if(replacements.Count == 0) return false;
 		
