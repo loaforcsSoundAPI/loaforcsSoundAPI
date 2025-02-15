@@ -19,6 +19,10 @@ outdir = "../../Packages"
 source = "../bin/Release/netstandard2.1/me.loaforc.soundapi.dll"
 target = "BepInEx/plugins/loaforcsSoundAPI/"
 
+[[build.copy]]
+source = "../../LICENSE"
+target = "LICENSE"
+
 [publish]
 communities = [ "lethal-company", ]
 [publish.categories]
