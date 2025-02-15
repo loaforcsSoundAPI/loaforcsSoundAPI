@@ -202,7 +202,7 @@ static class SoundPackLoadPipeline {
 
 			if (IValidatable.LogAndCheckValidationResult($"loading '{file}'", validationResult, pack.Logger)) {
 				
-				ConfigFile configFile = loaforcsSoundAPI.GenerateConfigFile($"soundpack.{pack.Name}");
+				ConfigFile configFile = loaforcsSoundAPI.GenerateConfigFile(pack.GUID);
 				configFile.SaveOnConfigSet = false; // dumb setting that's enabled by default
 				pack.Bind(configFile);
 				configFile.Save();

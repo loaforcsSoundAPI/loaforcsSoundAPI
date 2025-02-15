@@ -51,7 +51,7 @@ public class SoundPack : IValidatable {
 	}
 
 	public string Name { get; private set; }
-	public string GUID => Name; // todo: probably figure out a better way to do this.
+	public string GUID => $"soundpack.{Name}"; // todo: probably figure out a better way to do this.
 	
 	public string PackFolder { get; internal set; } // has to be internal as it is set not from a json property but elsewhere, kinda icky
     
