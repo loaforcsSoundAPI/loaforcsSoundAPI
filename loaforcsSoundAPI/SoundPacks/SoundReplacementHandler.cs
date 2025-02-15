@@ -174,7 +174,7 @@ static class SoundReplacementHandler {
 
 		Debuggers.SoundReplacementHandler?.Log("sound group that matches");
         
-		group = possibleCollections[Random.Range(0, possibleCollections.Count + 1)];
+		group = possibleCollections[Random.Range(0, possibleCollections.Count)];
 		List<SoundInstance> replacements = group.Sounds.Where(it => it.Evaluate(context)).ToList();
 		if(replacements.Count == 0) return false;
 		
@@ -189,7 +189,7 @@ static class SoundReplacementHandler {
 		}
 		*/
 		
-		int chosenWeight = Random.Range(0, totalWeight);
+		int chosenWeight = Random.Range(0, totalWeight + 1);
 		SoundInstance sound = null;
 		foreach (SoundInstance t in replacements) {
 			sound = t;
