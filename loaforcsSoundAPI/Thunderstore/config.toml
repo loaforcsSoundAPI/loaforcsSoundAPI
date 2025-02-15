@@ -23,6 +23,10 @@ target = "BepInEx/plugins/loaforcsSoundAPI/"
 source = "../../LICENSE"
 target = "LICENSE"
 
+[[build.copy]]
+source = "./CHANGELOG.md"
+target = "CHANGELOG.md"
+
 [publish]
 communities = [ "lethal-company", ]
 [publish.categories]
