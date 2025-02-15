@@ -20,8 +20,25 @@ public class AudioSourceAdditionalData {
 	/// AudioSource that this AdditonalData is describing.
 	/// </summary>
 	public AudioSource Source { get; private set; }
+
+	SoundReplacementGroup _replacedWith;
 	
-	internal SoundReplacementGroup ReplacedWith { get; set; }
+	internal SoundReplacementGroup ReplacedWith {
+		get => _replacedWith;
+		set {
+			_replacedWith = value;
+
+			// todo: kind of icky just modifying the list raw
+			if (RequiresUpdateFunction()) {
+				if(SoundAPIAudioManager.liveAudioSourceData.Contains(this)) return; // dont add to list twice
+				
+				SoundAPIAudioManager.liveAudioSourceData.Add(this);
+			} else if(SoundAPIAudioManager.liveAudioSourceData.Contains(this)) {
+				SoundAPIAudioManager.liveAudioSourceData.Remove(this);
+			}
+			
+		}
+	}
 
 	/// <summary>
 	/// Should SoundAPI ignore replacing for this Audio Source?
@@ -34,29 +51,7 @@ public class AudioSourceAdditionalData {
 	public IContext CurrentContext { get; set; }
 	
 	internal void Update() {
-		if(ReplacedWith == null) return;
-		if (!Source) {
-			Debuggers.UpdateEveryFrame?.Log($"err: source is not valid!!");
-			return;
-		}
-		
-		if (!Source.isPlaying) {
-			ReplacedWith = null;
-			Debuggers.UpdateEveryFrame?.Log("source stopped playing, setting replaced with = null");
-
-			return;
-		}
-
-		if (!ReplacedWith.Parent.UpdateEveryFrame) {
-			Debuggers.UpdateEveryFrame?.Log($"replaced; but not update every frame: {Source.name}");
-
-			return;
-		}
-		
-		if (!Source.enabled) {
-			Debuggers.UpdateEveryFrame?.Log($"err: source is disabled!");
-			return;
-		}
+		if(!RequiresUpdateFunction() || !AudioSourceIsPlaying()) return;
 		
 		Debuggers.UpdateEveryFrame?.Log($"success: updating every frame for {Source.name}");
 
@@ -76,7 +71,15 @@ public class AudioSourceAdditionalData {
 		Debuggers.UpdateEveryFrame?.Log("new clip found, swapped");
 
 	}
-	
+
+	bool RequiresUpdateFunction() {
+		return ReplacedWith != null && ReplacedWith.Parent.UpdateEveryFrame;
+	}
+
+	bool AudioSourceIsPlaying() {
+		return Source && Source.enabled && Source.isPlaying;
+	}
+
 	public static AudioSourceAdditionalData GetOrCreate(AudioSource source) {
 		if (SoundAPIAudioManager.audioSourceData.TryGetValue(source, out AudioSourceAdditionalData sourceData)) {
 			return sourceData;

@@ -7,9 +7,11 @@ using UnityEngine.SceneManagement;
 
 namespace loaforcsSoundAPI.Core;
 
+// todo: redo all of this lmao
 class SoundAPIAudioManager : MonoBehaviour {
 	internal static readonly Dictionary<AudioSource, AudioSourceAdditionalData> audioSourceData = [];
-
+	internal static readonly List<AudioSourceAdditionalData> liveAudioSourceData = []; // this is a list of audio source additonal data's that should have their .Update() called
+	
 	static SoundAPIAudioManager Instance;
 
 	void Awake() {
@@ -35,7 +37,7 @@ class SoundAPIAudioManager : MonoBehaviour {
 		Debuggers.UpdateEveryFrame?.Log($"sanity check: soundapi audio manager is running!");
 
 		
-		foreach (AudioSourceAdditionalData data in audioSourceData.Values) {
+		foreach (AudioSourceAdditionalData data in liveAudioSourceData) {
 			data.Update();
 		}
 	}
