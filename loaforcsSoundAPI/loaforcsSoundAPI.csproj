@@ -79,6 +79,6 @@ internal static class MyPluginInfo {
     </Target>
 
     <Target Name="PublishThunderstore">
-        <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --file $(ProjectDir)../Packages/*.zip" />
+        <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --file $(ProjectDir)../Packages/*-$(Version).zip" />
     </Target>
 </Project>
