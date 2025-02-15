@@ -20,7 +20,6 @@ source = "../bin/Release/netstandard2.1/me.loaforc.soundapi.dll"
 target = "BepInEx/plugins/loaforcsSoundAPI/"
 
 [publish]
-repository = "https://thunderstore.io"
-communities = [ "riskofrain2", ]
+communities = [ "lethal-company", ]
 [publish.categories]
-riskofrain2 = [ "items", "skills", ]
+riskofrain2 = [ "libraries", "mods", "tools", "audio", "client-side" ]

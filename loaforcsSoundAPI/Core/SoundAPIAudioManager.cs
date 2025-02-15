@@ -19,10 +19,10 @@ class SoundAPIAudioManager : MonoBehaviour {
 			
 			RunCleanup();
 		};
-
+		
 	}
 
-	static void SpawnManager() {
+	internal static void SpawnManager() {
 		loaforcsSoundAPI.Logger.LogInfo("Starting AudioManager.");
 		GameObject manager = new("SoundAPI_AudioManager");
 		DontDestroyOnLoad(manager);
@@ -32,6 +32,9 @@ class SoundAPIAudioManager : MonoBehaviour {
 	
 	// this seems icky but i do not care
 	void Update() {
+		Debuggers.UpdateEveryFrame?.Log($"sanity check: soundapi audio manager is running!");
+
+		
 		foreach (AudioSourceAdditionalData data in audioSourceData.Values) {
 			data.Update();
 		}

@@ -31,6 +31,8 @@ class loaforcsSoundAPI : BaseUnityPlugin {
 
 		Logger.LogInfo("Registering data");
 		SoundAPI.RegisterAll(Assembly.GetExecutingAssembly());
+
+		SoundAPIAudioManager.SpawnManager();
 		
 		SoundReplacementHandler.Register();
 		Config.Save();

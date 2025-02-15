@@ -24,31 +24,57 @@ public class AudioSourceAdditionalData {
 	internal SoundReplacementGroup ReplacedWith { get; set; }
 
 	/// <summary>
+	/// Should SoundAPI ignore replacing for this Audio Source?
+	/// </summary>
+	public bool DisableReplacing { get; private set; }
+	
+	/// <summary>
 	/// Current Context, may be null.
 	/// </summary>
 	public IContext CurrentContext { get; set; }
 	
 	internal void Update() {
-		if(!Source) return;
-		if(!Source.enabled) return;
 		if(ReplacedWith == null) return;
-		if (!Source.isPlaying) {
-			ReplacedWith = null;
+		if (!Source) {
+			Debuggers.UpdateEveryFrame?.Log($"err: source is not valid!!");
 			return;
 		}
 		
-		if(!ReplacedWith.Parent.UpdateEveryFrame) return;
+		if (!Source.isPlaying) {
+			ReplacedWith = null;
+			Debuggers.UpdateEveryFrame?.Log("source stopped playing, setting replaced with = null");
+
+			return;
+		}
+
+		if (!ReplacedWith.Parent.UpdateEveryFrame) {
+			Debuggers.UpdateEveryFrame?.Log($"replaced; but not update every frame: {Source.name}");
+
+			return;
+		}
+		
+		if (!Source.enabled) {
+			Debuggers.UpdateEveryFrame?.Log($"err: source is disabled!");
+			return;
+		}
+		
+		Debuggers.UpdateEveryFrame?.Log($"success: updating every frame for {Source.name}");
 
 		IContext context = CurrentContext ?? SoundReplacementHandler.DEFAULT_CONTEXT;
 		
 		SoundInstance sound = ReplacedWith.Sounds.FirstOrDefault(x => x.Evaluate(context));
 		if(sound == null) return;
 		if(sound.Clip == Source.clip) return;
+		Debuggers.UpdateEveryFrame?.Log("new clip found, swapping!!");
+
 		
 		float currentTime = Source.time;
 		Source.clip = sound.Clip;
 		Source.Play();
 		Source.time = currentTime;
+		
+		Debuggers.UpdateEveryFrame?.Log("new clip found, swapped");
+
 	}
 	
 	public static AudioSourceAdditionalData GetOrCreate(AudioSource source) {

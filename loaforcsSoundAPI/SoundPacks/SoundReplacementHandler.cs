@@ -55,6 +55,7 @@ static class SoundReplacementHandler {
 
 		AudioSourceAdditionalData sourceData = AudioSourceAdditionalData.GetOrCreate(source);
 		if (sourceData.ReplacedWith != null && sourceData.ReplacedWith.Parent.UpdateEveryFrame) return false; // the SoundAPIAudioManager is currently handling it, therefore we should not intervene.
+		if (sourceData.DisableReplacing) return false; // another mod has disabled replacing
 		
 		string[] name = ArrayPool<string>.Shared.Rent(3);
 
@@ -71,7 +72,11 @@ static class SoundReplacementHandler {
 		newClip.name = clip.name;
 		replacement = newClip;
 		sourceData.ReplacedWith = group;
-            
+
+		if (group.Parent.UpdateEveryFrame) {
+			Debuggers.UpdateEveryFrame?.Log("swapped to a clip that uses update_every_frame !!!");
+		}
+		
 		return true;
 	}
         

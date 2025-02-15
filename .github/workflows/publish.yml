@@ -50,7 +50,7 @@ jobs:
       - name: Upload artifacts to Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.release.tag_name }} thunderstore-build/*/Packages/*.zip
+        run: gh release upload ${{ github.event.release.tag_name }} thunderstore-build/Packages/*.zip
 
   deploy-thunderstore:
     name: Deploy to Thunderstore
