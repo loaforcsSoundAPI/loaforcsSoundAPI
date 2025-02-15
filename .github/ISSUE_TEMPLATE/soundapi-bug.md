@@ -10,9 +10,11 @@ assignees: LoafOrc
 **I HAVE COMPLETED THE FOLLOWING**
  - [ ] I have checked the issue page for both open and closed issues that could be relevant.
  - [ ] I have attached my latest log file while having debug logs enabled. I have enabled every setting under `InternalDebugging` in `me.loaforc.soundapi.cfg`
- - [ ] I have reproduced the issue.
+ - [ ] I have reproduced the issue with my mods.
+ - [ ] I have tried reproducing the bug with ONLY SoundAPI.
 
 ## Describe the bug
+Does this happen with ONLY soundapi? 
 A clear and concise description of what the bug is.
 
 ## To Reproduce
