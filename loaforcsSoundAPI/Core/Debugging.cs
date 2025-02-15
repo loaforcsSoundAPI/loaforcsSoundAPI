@@ -24,8 +24,10 @@ static class Debuggers {
 		foreach(FieldInfo fieldInfo in typeof(Debuggers).GetFields(BindingFlags.Static | BindingFlags.NonPublic)) {
 			if (file.Bind("InternalDebugging", fieldInfo.Name, false, "Enable/Disable this DebugLogSource. Should only be true if you know what you are doing or have been asked to.").Value) {
 				fieldInfo.SetValue(null, new DebugLogSource(fieldInfo.Name));
+				loaforcsSoundAPI.Logger.LogDebug($"created a DebugLogSource for {fieldInfo.Name}!");
 			} else {
 				fieldInfo.SetValue(null, null);
+				loaforcsSoundAPI.Logger.LogDebug($"no DebugLogSource for {fieldInfo.Name}.");
 			}
 		}
 	}
