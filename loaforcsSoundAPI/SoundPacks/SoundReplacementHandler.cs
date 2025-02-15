@@ -146,10 +146,9 @@ static class SoundReplacementHandler {
 				SoundReportHandler.CurrentReport.PlayedSounds.Add(playedSound);
 				
 			}
-			
-			Debuggers.MatchStrings?.Log(playedSound.MatchString);
 		}
 		
+		Debuggers.MatchStrings?.Log($"{name[TOKEN_PARENT_NAME]}:{name[TOKEN_OBJECT_NAME]}:{name[TOKEN_CLIP_NAME]}");
 		return true;
 	}
 	
