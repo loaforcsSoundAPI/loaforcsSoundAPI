@@ -22,4 +22,4 @@ target = "BepInEx/plugins/loaforcsSoundAPI/"
 [publish]
 communities = [ "lethal-company", ]
 [publish.categories]
-lethal-company = [ "libraries", "mods", "tools", "audio", "client-side" ]
+lethal-company = [ "libraries", "mods", "tools", "audio", "clientside" ]
