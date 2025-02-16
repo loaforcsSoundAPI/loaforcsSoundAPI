@@ -57,10 +57,10 @@ class SoundAPIAudioManager : MonoBehaviour {
 		loaforcsSoundAPI.Logger.LogDebug("cleaning up old audio source entries");
 		foreach (AudioSource source in audioSourceData.Keys.ToArray()) {
 			if (!source) {
-				audioSourceData.Remove(source);
 				if (liveAudioSourceData.Contains(audioSourceData[source])) {
 					liveAudioSourceData.Remove(audioSourceData[source]);
 				}
+				audioSourceData.Remove(source);
 			}
 		}
 	}
