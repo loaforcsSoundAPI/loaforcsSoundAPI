@@ -132,7 +132,7 @@ static class SoundPackLoadPipeline {
 				Interlocked.Increment(ref _activeThreads);
 				Debuggers.SoundReplacementLoader?.Log($"active threads at {_activeThreads}");
 				
-				while (queuedOperations.TryDequeue(out operation) && !threadsShouldExit) {
+				while (queuedOperations.TryDequeue(out operation)) {
 					try {
 						AudioClip clip = DownloadHandlerAudioClip.GetContent(operation.WebRequest);
 						operation.Sound.Clip = clip;
