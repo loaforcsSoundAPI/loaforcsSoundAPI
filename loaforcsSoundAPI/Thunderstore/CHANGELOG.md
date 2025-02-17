@@ -11,3 +11,6 @@
 
 ## 2.0.2
 - woops
+
+## 2.0.3
+- fixed an issue where if SoundAPI had nothing to load, it would spin infinitely.

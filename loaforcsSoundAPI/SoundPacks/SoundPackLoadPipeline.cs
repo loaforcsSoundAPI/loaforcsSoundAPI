@@ -116,7 +116,8 @@ static class SoundPackLoadPipeline {
 
 		// Display some info to the users so they know their game hasn't crashed.
 		bool displayedHalfwayMessage = false;
-
+		bool threadsShouldExit = false;
+		
 		ConcurrentQueue<LoadSoundOperation> queuedOperations = new();
 		ConcurrentBag<Exception> threadPoolExceptions = [];
 		
@@ -124,14 +125,14 @@ static class SoundPackLoadPipeline {
 		for (int i = 0; i < 16; i++) {
 			new Thread(() => {
 				LoadSoundOperation operation;
-				while (queuedOperations.Count == 0) {
+				while (queuedOperations.Count == 0 && !threadsShouldExit) {
 					Thread.Yield();
 				} 
 				
 				Interlocked.Increment(ref _activeThreads);
 				Debuggers.SoundReplacementLoader?.Log($"active threads at {_activeThreads}");
 				
-				while (queuedOperations.TryDequeue(out operation)) {
+				while (queuedOperations.TryDequeue(out operation) && !threadsShouldExit) {
 					try {
 						AudioClip clip = DownloadHandlerAudioClip.GetContent(operation.WebRequest);
 						operation.Sound.Clip = clip;
@@ -163,7 +164,8 @@ static class SoundPackLoadPipeline {
 		}
 
 		loaforcsSoundAPI.Logger.LogInfo($"(Step 5) All file reads are done, waiting for the audio clips conversions.");
-
+		threadsShouldExit = true;
+		
 		// Step 6: Wait.
 		while (_activeThreads > 0 || webRequestOperations.Any(operation => !operation.IsDone)) {
 			Thread.Yield();
