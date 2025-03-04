@@ -28,6 +28,7 @@ source = "./CHANGELOG.md"
 target = "CHANGELOG.md"
 
 [publish]
-communities = [ "lethal-company", ]
+communities = [ "lethal-company", "repo" ]
 [publish.categories]
 lethal-company = [ "libraries", "mods", "tools", "audio", "clientside" ]
+repo = [ "libraries", "mods", "tools", "audio" ]
