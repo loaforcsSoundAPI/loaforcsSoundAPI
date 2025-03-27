@@ -41,6 +41,7 @@ static class SoundReplacementHandler {
 				source.Stop();
 				if (replacement == null) continue;
 				source.clip = replacement;
+				source.Play();
 			}
 		};
 	}
