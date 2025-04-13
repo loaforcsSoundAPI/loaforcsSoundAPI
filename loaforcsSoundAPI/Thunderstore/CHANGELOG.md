@@ -20,3 +20,10 @@
 
 ## 2.0.5
 - upload to R.E.P.O.
+
+## 2.0.6
+- fixed an issue where SoundAPI would cause many issues if a loaded sound-pack tried to reference files that didn't exist.
+- fixed an issue where SoundAPI would stop audio sources from playing if they were marked as `playOnAwake` and loaded with a scene.
+    - note: this has a temporary config to disable it, as i'm not entirely sure if this will fully work
+- added an extra check to prevent duplicate sound-packs from loading.
+- added a warning log if no sound-packs loaded.
