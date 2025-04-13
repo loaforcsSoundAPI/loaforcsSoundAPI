@@ -51,6 +51,9 @@ static class SoundPackLoadPipeline {
 		// Step 1: Find and load packs
 		List<SoundPack> packs = FindAndLoadPacks();
 		loaforcsSoundAPI.Logger.LogInfo($"(Step 1) Loading Sound-pack definitions took {timer.ElapsedMilliseconds}ms");
+
+		if(packs.Count == 0) loaforcsSoundAPI.Logger.LogWarning("No sound-packs were found to load! This can be ignorable if you're doing testing or using SoundAPI for another purpose, but if you expected sound-packs to load you may have set it up incorrectly.");
+
 		timer.Restart();
 
 		// Step 2: Load mappings
