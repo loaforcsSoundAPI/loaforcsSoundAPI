@@ -14,7 +14,7 @@ public interface IValidatable {
 	/// </summary>
 	/// <returns>Non-successful validations</returns>
 	public List<ValidationResult> Validate();
-	
+
 	public enum ResultType {
 		WARN,
 		FAIL
@@ -30,20 +30,18 @@ public interface IValidatable {
 		public string Reason { get; private set; } = reason ?? string.Empty;
 	}
 
-	private static readonly StringBuilder _stringBuilder = new();
-	
+	private static readonly StringBuilder _stringBuilder = new StringBuilder();
+
 	internal static bool LogAndCheckValidationResult(string context, List<ValidationResult> results, ManualLogSource logger) {
-		if (results.Count == 0) {
-			return true;
-		}
-		
+		if(results.Count == 0) return true;
+
 		// it's a bit icky that i have to loop twice over it but it doesn't really matter and this formatting looks nice so :3
 		// also none of this code should ever be ran by end users given that sound pack creators do the right thing
-			
+
 		int warns = 0, fails = 0;
-			
-		foreach (ValidationResult result in results) {
-			switch (result.Status) {
+
+		foreach(ValidationResult result in results) {
+			switch(result.Status) {
 				case ResultType.WARN:
 					warns++;
 					break;
@@ -57,16 +55,15 @@ public interface IValidatable {
 
 		_stringBuilder.Clear();
 
-		if (fails != 0) {
+		if(fails != 0) {
 			_stringBuilder.Append(fails);
 			_stringBuilder.Append(" fail(s)");
 		}
-            
-		if (warns != 0) {
-			if (fails != 0) { // both warnings and fails were present
+
+		if(warns != 0) {
+			if(fails != 0) // both warnings and fails were present
 				_stringBuilder.Append(" and ");
-			}
-				
+
 			_stringBuilder.Append(warns);
 			_stringBuilder.Append(" warning(s)");
 		}
@@ -74,15 +71,14 @@ public interface IValidatable {
 		_stringBuilder.Append(" while ");
 		_stringBuilder.Append(context);
 		_stringBuilder.Append(": ");
-			
-		if (fails != 0) {
+
+		if(fails != 0)
 			logger.LogError(_stringBuilder);
-		} else {
+		else
 			logger.LogWarning(_stringBuilder);
-		}
-			
-		foreach (ValidationResult result in results) {
-			switch (result.Status) {
+
+		foreach(ValidationResult result in results) {
+			switch(result.Status) {
 				case ResultType.WARN:
 					logger.LogWarning($"WARN: {result.Reason}");
 					break;
@@ -94,6 +90,6 @@ public interface IValidatable {
 			}
 		}
 
-		return fails != 0;
+		return fails == 0;
 	}
 }
