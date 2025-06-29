@@ -48,11 +48,14 @@ static class SoundReplacementHandler {
 				if(source.gameObject.scene != scene) continue; // already processed
 				if(!source.playOnAwake) continue;
 				if(!source.enabled) continue;
-				if(!TryReplaceAudio(source, source.clip, out AudioClip replacement)) continue;
+
+				AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(source);
+
+				if(!TryReplaceAudio(source, data.OriginalClip, out AudioClip replacement)) continue;
 
 				source.Stop();
 				if(replacement == null) continue;
-				source.clip = replacement;
+				data.RealClip = replacement;
 
 				if(SceneAwakeFix)
 					source.Play();
