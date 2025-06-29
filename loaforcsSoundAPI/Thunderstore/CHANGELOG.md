@@ -27,3 +27,6 @@
     - note: this has a temporary config to disable it, as i'm not entirely sure if this will fully work
 - added an extra check to prevent duplicate sound-packs from loading.
 - added a warning log if no sound-packs loaded.
+
+## 2.0.7
+- uploaded to PEAK

@@ -28,7 +28,10 @@ source = "./CHANGELOG.md"
 target = "CHANGELOG.md"
 
 [publish]
-communities = [ "lethal-company", "repo" ]
+# https://thunderstore.io/api/experimental/community/
+communities = [ "lethal-company", "repo", "peak" ]
 [publish.categories]
+# https://thunderstore.io/api/experimental/community/lethal-company/category/
 lethal-company = [ "libraries", "mods", "tools", "audio", "clientside" ]
 repo = [ "libraries", "mods", "tools", "audio" ]
+peak = [ "libraries", "mods", "tools", "audio", "client" ]
