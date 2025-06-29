@@ -213,7 +213,14 @@ static class SoundPackLoadPipeline {
 			List<IValidatable.ValidationResult> validationResult = pack.Validate();
 
 			if(IValidatable.LogAndCheckValidationResult($"loading '{file}'", validationResult, pack.Logger)) {
-				ConfigFile configFile = loaforcsSoundAPI.GenerateConfigFile(pack.GUID);
+				BepInPlugin metadata;
+
+				if(PackLoadingConfig.MetadataSpoofing)
+					metadata = new BepInPlugin(pack.GUID, pack.Name, pack.Version ?? "1.0.0");
+				else
+					metadata = MetadataHelper.GetMetadata(typeof(loaforcsSoundAPI));
+
+				ConfigFile configFile = loaforcsSoundAPI.GenerateConfigFile(pack.GUID, metadata);
 				configFile.SaveOnConfigSet = false; // dumb setting that's enabled by default
 				pack.Bind(configFile);
 				configFile.Save();

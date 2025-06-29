@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using JetBrains.Annotations;
 using loaforcsSoundAPI.Core.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,25 +15,26 @@ namespace loaforcsSoundAPI.SoundPacks.Data;
 public class SoundPack : IValidatable {
 	// this is very icky because really this should not be referencing newtonsoft json in any way but i could not care less at the moment
 	[JsonConstructor]
-	internal SoundPack() {}
+	internal SoundPack() {
+	}
 
 	[JsonProperty]
 	Dictionary<string, JObject> config { get; set; } // handled by json seralization 
-	
+
 	// this too
 	internal void Bind(ConfigFile file) {
 		if(config == null) return;
 		if(config.Count == 0) return;
 		loaforcsSoundAPI.Logger.LogDebug("handling config");
-		
-		foreach (KeyValuePair<string,JObject> pair in config) {
+
+		foreach(KeyValuePair<string, JObject> pair in config) {
 			string[] sectionData = pair.Key.Split(":");
 			string configSection = sectionData[0];
 			string configName = sectionData[1];
 			JToken defaultValue = pair.Value["default"];
 			string description = pair.Value.TryGetValue("description", out JToken value) ? value.ToString() : "no description defined!";
-			
-			switch (defaultValue.Type) {
+
+			switch(defaultValue.Type) {
 				case JTokenType.Boolean:
 					_configData[pair.Key] = file.Bind(configSection, configName, (bool)defaultValue, description).Value;
 					break;
@@ -52,9 +54,12 @@ public class SoundPack : IValidatable {
 
 	public string Name { get; private set; }
 	public string GUID => $"soundpack.{Name}"; // todo: probably figure out a better way to do this.
-	
+
+	[CanBeNull]
+	public string Version { get; private set; }
+
 	public string PackFolder { get; internal set; } // has to be internal as it is set not from a json property but elsewhere, kinda icky
-    
+
 	[field: NonSerialized]
 	public List<SoundReplacementCollection> ReplacementCollections { get; private set; } = [];
 
@@ -65,14 +70,14 @@ public class SoundPack : IValidatable {
 
 	public ManualLogSource Logger {
 		get {
-			if (_logger == null) _logger = BepInEx.Logging.Logger.CreateLogSource(GUID);
+			if(_logger == null) _logger = BepInEx.Logging.Logger.CreateLogSource(GUID);
 			return _logger;
 		}
 	}
-	
+
 	internal bool TryGetConfigValue(string id, out object returnValue) {
 		returnValue = default;
-		if (!_configData.TryGetValue(id, out object data)) return false;
+		if(!_configData.TryGetValue(id, out object data)) return false;
 		returnValue = data;
 		return true;
 	}
@@ -80,8 +85,8 @@ public class SoundPack : IValidatable {
 	/// <inheritdoc />
 	public List<IValidatable.ValidationResult> Validate() {
 		List<IValidatable.ValidationResult> results = [];
-		
-		if (string.IsNullOrEmpty(Name)) {
+
+		if(string.IsNullOrEmpty(Name)) {
 			results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, "'name' can not be missing or empty!"));
 			return results;
 		}
@@ -91,26 +96,22 @@ public class SoundPack : IValidatable {
 			results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"'name' can not contain special character '{character}'!"));
 		}
 
-		if (config == null) return results;
-        
-		foreach (KeyValuePair<string, JObject> pair in config) {
+		if(string.IsNullOrEmpty(Version) && PackLoadingConfig.MetadataSpoofing) results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.WARN, "'version' should not be empty, defaulting to '1.0.0' (needed by MetadataSpoofing config)"));
+
+		if(config == null) return results;
+
+		foreach(KeyValuePair<string, JObject> pair in config) {
 			string[] sectionData = pair.Key.Split(":");
 
-			if (sectionData.Length != 2) {
-				results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"'{pair.Key}' is not a valid key for config! It must be 'section:name' with exactly one colon!"));
-			}
+			if(sectionData.Length != 2) results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"'{pair.Key}' is not a valid key for config! It must be 'section:name' with exactly one colon!"));
 
-			if (!pair.Value.TryGetValue("default", out JToken defaultValue)) {
+			if(!pair.Value.TryGetValue("default", out JToken defaultValue)) {
 				results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"'{pair.Key}' does not have a 'default' value! This is needed to get what type the config is!"));
 			} else {
-				if (defaultValue.Type != JTokenType.Boolean && defaultValue.Type != JTokenType.String) {
-					results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"'{pair.Key}' is of unsupported type: '{defaultValue.Type}'! Only supported types are strings/text or booleans!"));
-				}
+				if(defaultValue.Type != JTokenType.Boolean && defaultValue.Type != JTokenType.String) results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"'{pair.Key}' is of unsupported type: '{defaultValue.Type}'! Only supported types are strings/text or booleans!"));
 			}
 
-			if (!pair.Value.ContainsKey("description")) {
-				results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.WARN, $"'{pair.Key}' does not have a description."));
-			}
+			if(!pair.Value.ContainsKey("description")) results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.WARN, $"'{pair.Key}' does not have a description."));
 		}
 
 		return results;

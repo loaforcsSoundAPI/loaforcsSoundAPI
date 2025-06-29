@@ -25,6 +25,8 @@ class loaforcsSoundAPI : BaseUnityPlugin {
 		Debuggers.Bind(Config);
 		SoundReportHandler.Bind(Config);
 		SoundReplacementHandler.Bind(Config);
+		PatchConfig.Bind(Config);
+		PackLoadingConfig.Bind(Config);
 
 		Logger.LogInfo("Running patches");
 		Harmony harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), MyPluginInfo.PLUGIN_GUID);
@@ -41,7 +43,7 @@ class loaforcsSoundAPI : BaseUnityPlugin {
 		Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} by loaforc has loaded :3");
 	}
 
-	internal static ConfigFile GenerateConfigFile(string name) {
-		return new ConfigFile(Utility.CombinePaths(Paths.ConfigPath, name + ".cfg"), false, MetadataHelper.GetMetadata(_instance));
+	internal static ConfigFile GenerateConfigFile(string name, BepInPlugin metadata) {
+		return new ConfigFile(Utility.CombinePaths(Paths.ConfigPath, name + ".cfg"), false, metadata);
 	}
 }
