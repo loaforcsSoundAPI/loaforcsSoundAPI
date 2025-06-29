@@ -29,17 +29,6 @@ static class SoundReplacementHandler {
 	static readonly Dictionary<int, string> _cachedObjectNames = [];
 	static readonly StringBuilder _builder = new StringBuilder();
 
-	static bool SceneAwakeFix;
-
-	internal static void Bind(ConfigFile file) {
-		SceneAwakeFix = file.Bind(
-			"Temporary",
-			nameof(SceneAwakeFix),
-			true,
-			"This is a temporary config value that fixes a bug in SoundAPI where it would remove some sounds. I'm not fully confident that this works fully yet so I've left a config here to be disabled if it breaks."
-		).Value;
-	}
-
 	internal static void Register() {
 		SceneManager.sceneLoaded += (scene, _) => {
 			_cachedObjectNames.Clear();
@@ -57,8 +46,7 @@ static class SoundReplacementHandler {
 				if(replacement == null) continue;
 				data.RealClip = replacement;
 
-				if(SceneAwakeFix)
-					source.Play();
+				source.Play();
 			}
 		};
 	}

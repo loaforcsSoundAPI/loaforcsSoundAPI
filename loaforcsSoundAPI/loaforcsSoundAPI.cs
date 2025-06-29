@@ -24,7 +24,6 @@ class loaforcsSoundAPI : BaseUnityPlugin {
 		Logger.LogInfo("Setting up config");
 		Debuggers.Bind(Config);
 		SoundReportHandler.Bind(Config);
-		SoundReplacementHandler.Bind(Config);
 		PatchConfig.Bind(Config);
 		PackLoadingConfig.Bind(Config);
 
