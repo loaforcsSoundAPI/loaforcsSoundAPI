@@ -7,7 +7,6 @@ namespace loaforcsSoundAPI.Core;
 [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
 static class Debuggers {
-
 	internal static DebugLogSource AudioSourceAdditionalData;
 
 	internal static DebugLogSource SoundReplacementLoader;
@@ -19,10 +18,12 @@ static class Debuggers {
 	internal static DebugLogSource ConditionsInfo;
 
 	internal static DebugLogSource UpdateEveryFrame;
-	
+
+	internal static DebugLogSource AudioClipSpoofing;
+
 	internal static void Bind(ConfigFile file) {
 		foreach(FieldInfo fieldInfo in typeof(Debuggers).GetFields(BindingFlags.Static | BindingFlags.NonPublic)) {
-			if (file.Bind("InternalDebugging", fieldInfo.Name, false, "Enable/Disable this DebugLogSource. Should only be true if you know what you are doing or have been asked to.").Value) {
+			if(file.Bind("InternalDebugging", fieldInfo.Name, false, "Enable/Disable this DebugLogSource. Should only be true if you know what you are doing or have been asked to.").Value) {
 				fieldInfo.SetValue(null, new DebugLogSource(fieldInfo.Name));
 				loaforcsSoundAPI.Logger.LogDebug($"created a DebugLogSource for {fieldInfo.Name}!");
 			} else {

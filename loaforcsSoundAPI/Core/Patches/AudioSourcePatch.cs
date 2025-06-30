@@ -54,6 +54,7 @@ static class AudioSourcePatch {
 
 		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(__instance);
 		data.OriginalClip = value;
+		Debuggers.AudioClipSpoofing?.Log($"({__instance.gameObject.name}) updating original clip to: {value.name}");
 	}
 
 	[HarmonyPatch(nameof(AudioSource.clip), MethodType.Setter)]
@@ -68,6 +69,7 @@ static class AudioSourcePatch {
 		 * This preforms the intended behaviour from the game/mod creator pov where the audio does not restart if they think they are setting it to the same thing
 		 */
 		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(__instance);
+		if(data.OriginalClip == value) Debuggers.AudioClipSpoofing?.Log("prevented clip from restarting");
 		return data.OriginalClip != value;
 	}
 
@@ -78,5 +80,6 @@ static class AudioSourcePatch {
 
 		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(__instance);
 		__result = data.OriginalClip;
+		Debuggers.AudioClipSpoofing?.Log($"({__instance.gameObject.name}) spoofing result to {data.OriginalClip.name}");
 	}
 }

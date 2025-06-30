@@ -24,11 +24,26 @@ public class AudioSourceAdditionalData {
 
 	SoundReplacementGroup _replacedWith;
 
+	/// <summary>
+	/// AudioClip before replacement, this may differ from <see cref="RealClip"/>.
+	/// </summary>
 	public AudioClip OriginalClip { get; internal set; }
 
+	/// <summary>
+	/// AudioClip that will actually be played by Unity
+	/// </summary>
+	/// <remarks>
+	/// This should be used almost everywhere internally in SoundAPI when updating the AudioClip on an AudioSource.
+	/// </remarks>
 	public AudioClip RealClip {
-		get => AudioSourcePatch.GetRealClip(Source);
-		set => AudioSourcePatch.SetRealClip(Source, value);
+		get {
+			Debuggers.AudioSourceAdditionalData?.Log($"({Source.name}) Getting real clip: {AudioSourcePatch.GetRealClip(Source).name} (original clip: {OriginalClip.name})");
+			return AudioSourcePatch.GetRealClip(Source);
+		}
+		set {
+			Debuggers.AudioSourceAdditionalData?.Log($"({Source.name}) Setting real clip: {value.name} (original clip: {OriginalClip.name})");
+			AudioSourcePatch.SetRealClip(Source, value);
+		}
 	}
 
 	internal SoundReplacementGroup ReplacedWith {
