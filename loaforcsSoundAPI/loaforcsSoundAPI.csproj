@@ -5,7 +5,7 @@
         <AssemblyName>me.loaforc.soundapi</AssemblyName>
         <Product>loaforcsSoundAPI</Product>
         <!-- Change to whatever version you're currently on. -->
-        <Version>2.0.7</Version>
+        <Version>2.0.8</Version>
     </PropertyGroup>
 
     <!-- Project Properties -->
@@ -15,7 +15,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
-    
+
     <!-- Set NuGet Sources -->
     <PropertyGroup>
         <RestoreAdditionalProjectSources>
@@ -44,7 +44,7 @@
         <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all"/>
         <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all"/>
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" PrivateAssets="all"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
@@ -64,21 +64,21 @@ internal static class MyPluginInfo {
             <GeneratedFilePath>$(IntermediateOutputPath)MyPluginInfo.cs</GeneratedFilePath>
         </PropertyGroup>
         <ItemGroup>
-            <Compile Include="$(GeneratedFilePath)" />
-            <FileWrites Include="$(GeneratedFilePath)" />
+            <Compile Include="$(GeneratedFilePath)"/>
+            <FileWrites Include="$(GeneratedFilePath)"/>
         </ItemGroup>
-        <WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true" />
+        <WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true"/>
     </Target>
-    
+
     <ItemGroup>
-      <None Remove="Thunderstore\**" />
+        <None Remove="Thunderstore\**"/>
     </ItemGroup>
 
     <Target Name="PackThunderstore" AfterTargets="PostBuildEvent" Condition="$(Configuration) == 'Release'">
-        <Exec Command="dotnet tcli build --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --package-version $(Version)"  />
+        <Exec Command="dotnet tcli build --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --package-version $(Version)"/>
     </Target>
 
     <Target Name="PublishThunderstore">
-        <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --file &quot;$(ProjectDir)../loaforc-loaforcsSoundAPI-$(Version).zip&quot;" />
+        <Exec Command="dotnet tcli publish --config-path &quot;$(ProjectDir)Thunderstore/config.toml&quot; --file &quot;$(ProjectDir)../loaforc-loaforcsSoundAPI-$(Version).zip&quot;"/>
     </Target>
 </Project>
