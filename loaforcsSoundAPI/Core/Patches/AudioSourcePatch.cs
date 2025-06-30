@@ -49,7 +49,9 @@ static class AudioSourcePatch {
 	[HarmonyPatch(nameof(AudioSource.clip), MethodType.Setter)]
 	[HarmonyPriority(Priority.Last)]
 	[HarmonyPrefix]
-	static void UpdateOriginalClip(AudioSource __instance, AudioClip value) {
+	static void UpdateOriginalClip(AudioSource __instance, AudioClip value, bool __runOriginal) {
+		if(!__runOriginal) return;
+
 		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(__instance);
 		data.OriginalClip = value;
 	}

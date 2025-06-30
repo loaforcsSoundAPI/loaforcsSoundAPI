@@ -90,6 +90,7 @@ public class AudioSourceAdditionalData {
 		if(SoundAPIAudioManager.audioSourceData.TryGetValue(source, out AudioSourceAdditionalData sourceData)) return sourceData;
 
 		sourceData = new AudioSourceAdditionalData(source);
+		sourceData.OriginalClip = sourceData.RealClip;
 		SoundAPIAudioManager.audioSourceData[source] = sourceData;
 
 		return sourceData;
