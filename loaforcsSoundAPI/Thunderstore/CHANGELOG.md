@@ -30,3 +30,11 @@
 
 ## 2.0.7
 - uploaded to PEAK
+- removed previously temporary config
+- add metadata spoofing (fixes config names in Gale acting strange)
+- added a new experiment
+  - audio clip spoofing: enabling this experiment makes soundapi lie in some cases to other mods and the vanilla game about the true audioclip. this can help improve compatibilty
+
+## 2.0.8
+- hopefully fixed some issues with audio clip spoofing
+- fixed an edge case where when a prefab was instantiated with a disabled `playOnAwake` audio source soundapi would try to play it (harmless, only a warning log)
