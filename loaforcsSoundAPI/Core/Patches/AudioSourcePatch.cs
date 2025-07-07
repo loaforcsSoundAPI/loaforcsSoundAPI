@@ -8,6 +8,8 @@ namespace loaforcsSoundAPI.Core.Patches;
 
 [HarmonyPatch(typeof(AudioSource))]
 static class AudioSourcePatch {
+	internal static bool bypassSpoofing;
+
 	[HarmonyPrefix]
 	[HarmonyPatch(nameof(AudioSource.Play), new Type[] { })]
 	[HarmonyPatch(nameof(AudioSource.Play), [typeof(ulong)])]
@@ -34,18 +36,6 @@ static class AudioSourcePatch {
 		return true;
 	}
 
-	[HarmonyReversePatch]
-	[HarmonyPatch(nameof(AudioSource.clip), MethodType.Setter)]
-	internal static void SetRealClip(AudioSource __instance, AudioClip value) {
-		throw new Exception();
-	}
-
-	[HarmonyReversePatch]
-	[HarmonyPatch(nameof(AudioSource.clip), MethodType.Getter)]
-	internal static AudioClip GetRealClip(AudioSource __instance) {
-		throw new Exception();
-	}
-
 	[HarmonyPatch(nameof(AudioSource.clip), MethodType.Setter)]
 	[HarmonyPriority(Priority.Last)]
 	[HarmonyPrefix]
@@ -60,7 +50,7 @@ static class AudioSourcePatch {
 	[HarmonyPatch(nameof(AudioSource.clip), MethodType.Setter)]
 	[HarmonyPrefix]
 	static bool PreventClipRestartingWithSpoofed(AudioSource __instance, AudioClip value) {
-		if(!PatchConfig.AudioClipSpoofing) return true;
+		if(!PatchConfig.AudioClipSpoofing || bypassSpoofing) return true;
 
 		/*
 		 * Sometimes a game/mod (like REPO) will update AudioSource.clip frequently.
@@ -76,7 +66,7 @@ static class AudioSourcePatch {
 	[HarmonyPatch(nameof(AudioSource.clip), MethodType.Getter)]
 	[HarmonyPostfix]
 	static void SpoofAudioSourceClip(AudioSource __instance, ref AudioClip __result) {
-		if(!PatchConfig.AudioClipSpoofing) return;
+		if(!PatchConfig.AudioClipSpoofing || bypassSpoofing) return;
 
 		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(__instance);
 		__result = data.OriginalClip;

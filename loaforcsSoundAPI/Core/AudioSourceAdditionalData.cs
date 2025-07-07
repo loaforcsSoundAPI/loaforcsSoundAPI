@@ -37,12 +37,30 @@ public class AudioSourceAdditionalData {
 	/// </remarks>
 	public AudioClip RealClip {
 		get {
-			Debuggers.AudioSourceAdditionalData?.Log($"({Source.name}) Getting real clip: {AudioSourcePatch.GetRealClip(Source).name} (original clip: {OriginalClip.name})");
-			return AudioSourcePatch.GetRealClip(Source);
+			using(new SpoofBypassContext()) {
+				if(Debuggers.AudioSourceAdditionalData != null) {
+					string realClip = "null";
+					if(Source.clip) realClip = Source.clip.name;
+
+					string originalClip = "null";
+					if(OriginalClip) originalClip = OriginalClip.name;
+					Debuggers.AudioSourceAdditionalData.Log($"({Source.name}) Getting real clip: {realClip} (original clip: {originalClip})");
+				}
+
+				return Source.clip;
+			}
 		}
 		set {
-			Debuggers.AudioSourceAdditionalData?.Log($"({Source.name}) Setting real clip: {value.name} (original clip: {OriginalClip.name})");
-			AudioSourcePatch.SetRealClip(Source, value);
+			using(new SpoofBypassContext()) {
+				if(Debuggers.AudioSourceAdditionalData != null) {
+					string originalClip = "null";
+					if(OriginalClip) originalClip = OriginalClip.name;
+
+					Debuggers.AudioSourceAdditionalData?.Log($"({Source.name}) Setting real clip: {value.name} (original clip: {originalClip})");
+				}
+
+				Source.clip = value;
+			}
 		}
 	}
 
