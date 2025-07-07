@@ -35,20 +35,24 @@ static class SoundReplacementHandler {
 
 			foreach(AudioSource source in Object.FindObjectsOfType<AudioSource>(true)) {
 				if(source.gameObject.scene != scene) continue; // already processed
-				if(!source.playOnAwake) continue;
-				if(!source.enabled) continue;
-
-				AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(source);
-
-				if(!TryReplaceAudio(source, data.OriginalClip, out AudioClip replacement)) continue;
-
-				source.Stop();
-				if(replacement == null) continue;
-				data.RealClip = replacement;
-
-				source.Play();
+				CheckAudioSource(source);
 			}
 		};
+	}
+
+	internal static void CheckAudioSource(AudioSource source) {
+		if(!source.playOnAwake) return;
+		if(!source.enabled) return;
+
+		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(source);
+
+		if(!TryReplaceAudio(source, data.OriginalClip, out AudioClip replacement)) return;
+
+		source.Stop();
+		if(replacement == null) return;
+		data.RealClip = replacement;
+
+		source.Play();
 	}
 
 	internal static bool TryReplaceAudio(AudioSource source, AudioClip clip, out AudioClip replacement) {

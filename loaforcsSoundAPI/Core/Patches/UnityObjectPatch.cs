@@ -32,18 +32,7 @@ static class UnityObjectPatch {
 		if(gameObject.TryGetComponent(out AudioSourceAdditionalData _)) return; // already processed
 
 		foreach(AudioSource source in gameObject.GetComponents<AudioSource>()) {
-			AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(source);
-
-			if(source.playOnAwake) {
-				data.OriginalClip = source.clip;
-				if(SoundReplacementHandler.TryReplaceAudio(source, data.OriginalClip, out AudioClip replacement)) {
-					source.Stop();
-					if(replacement == null) continue;
-					source.clip = replacement;
-				}
-
-				source.Play();
-			}
+			SoundReplacementHandler.CheckAudioSource(source);
 		}
 
 		foreach(Transform transform in gameObject.transform) {
