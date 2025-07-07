@@ -223,7 +223,9 @@ static class SoundPackLoadPipeline {
 				ConfigFile configFile = loaforcsSoundAPI.GenerateConfigFile(pack.GUID, metadata);
 				configFile.SaveOnConfigSet = false; // dumb setting that's enabled by default
 				pack.Bind(configFile);
-				configFile.Save();
+
+				if(configFile.Count > 0)
+					configFile.Save();
 				packs[pack.Name] = pack;
 				SoundPackDataHandler.AddLoadedPack(pack);
 				Debuggers.SoundReplacementLoader?.Log($"pack folder: {pack.PackFolder}");

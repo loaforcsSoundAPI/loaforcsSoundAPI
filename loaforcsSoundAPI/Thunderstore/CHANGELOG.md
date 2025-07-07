@@ -38,3 +38,4 @@
 ## 2.0.8
 - hopefully fixed some issues with audio clip spoofing
 - fixed an edge case where when a prefab was instantiated with a disabled `playOnAwake` audio source soundapi would try to play it (harmless, only a warning log)
+- fixed config generation so that soundpacks which do not define config do not create a file.
