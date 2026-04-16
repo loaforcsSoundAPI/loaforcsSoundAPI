@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using loaforcsSoundAPI.SoundPacks;
 using MonoMod.RuntimeDetour;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace loaforcsSoundAPI.Core.Patches.Native;
@@ -22,6 +23,12 @@ static class AudioSourceNativePatch {
 		_origPlay = NativeBackend.PatchNative<PlayDelegate>(offsets.AudioSource_Play, Play);
 		if(offsets.AudioSource_RemoveFromManager.HasValue) {
 			_origRemoveFromManager = NativeBackend.PatchNative<RemoveFromManagerDelegate>(offsets.AudioSource_RemoveFromManager.Value, PatchedRemoveFromManager);
+		} else {
+			loaforcsSoundAPI.Logger.LogWarning("No RemoveFromManager offset for this unity version, falling back.");
+			SceneManager.sceneLoaded += (scene, _) => {
+				// run goofy loop on everything
+				SoundAPIAudioManager.RunCleanup();
+			};
 		}
 	}
 

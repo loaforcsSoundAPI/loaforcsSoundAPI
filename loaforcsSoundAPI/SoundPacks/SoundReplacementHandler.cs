@@ -91,7 +91,7 @@ static class SoundReplacementHandler {
 			Debuggers.UpdateEveryFrame?.Log($"swapped to a clip that uses update_every_frame !!! isOneShot = {@event.IsOneShot}");
 		}
 
-		return false;
+		return true;
 	}
 
 	[Obsolete]

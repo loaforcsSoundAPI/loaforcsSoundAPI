@@ -14,6 +14,7 @@ namespace loaforcsSoundAPI.Core.Patches.Native;
 
 // Thanks to zaggy for helping with a lot of this! (especially with the GetScriptingWrapper stuff)
 static class NativeBackend {
+	internal static bool Enabled { get; private set; }
 	internal static readonly IntPtr BaseAddress = GetUnityPlayerModule().BaseAddress;
 	internal static RuntimePlatform Platform => Application.platform;
 
@@ -44,6 +45,7 @@ static class NativeBackend {
 	}
 
 	static void Init(NativeBackendSettings settings) {
+		Enabled = true;
 		AudioSourceNativePatch.Init(settings.WindowsReleaseOffsets);
 	}
 

@@ -7,6 +7,7 @@ using System.Threading;
 using BepInEx;
 using BepInEx.Configuration;
 using loaforcsSoundAPI.Core.JSON;
+using loaforcsSoundAPI.Core.Patches.Native;
 using loaforcsSoundAPI.Core.Util;
 using loaforcsSoundAPI.Reporting.Data;
 using loaforcsSoundAPI.SoundPacks;
@@ -61,6 +62,7 @@ public static class SoundReportHandler {
 		AddReportSection("General Information", (stream, report) => {
 			stream.WriteLine($"Game name: `{Application.productName}` `v{Application.version}` by `{Application.companyName}`<br/>");
 			stream.WriteLine($"Unity version: `{Application.unityVersion}<br/>");
+			stream.WriteLine($"Native Backend supported: `{NativeBackend.TryGetSettings(out _)}`, enabled: `{NativeBackend.Enabled}` <br/>");
 			stream.WriteLine($"SoundAPI version: `{MyPluginInfo.PLUGIN_VERSION}` <br/><br/>");
 
 			stream.WriteLine($"Audio-clips loaded: `{report.AudioClipsLoaded}` <br/>");
@@ -70,8 +72,9 @@ public static class SoundReportHandler {
 		});
 
 		AddReportSection("Dynamic Data", (stream, _) => {
-			if(SoundAPI.CurrentNetworkAdapter != null)
+			if(SoundAPI.CurrentNetworkAdapter != null) {
 				stream.WriteLine($"Network Adapter: `{SoundAPI.CurrentNetworkAdapter.Name}` <br/><br/>");
+			}
 
 			WriteList("Registered Conditions", stream, SoundPackDataHandler.conditionFactories.Keys.ToList());
 		});
@@ -82,7 +85,9 @@ public static class SoundReportHandler {
 	}
 
 	internal static void Bind(ConfigFile file) {
-		if(file.Bind("Developer", "GenerateReports", false, "While true SoundAPI will generate a json and markdown file per session that records information SoundAPI and related mods find.").Value) Register();
+		if(file.Bind("Developer", "GenerateReports", false, "While true SoundAPI will generate a json and markdown file per session that records information SoundAPI and related mods find.").Value) {
+			Register();
+		}
 	}
 
 	static string GetFileName(SoundReport report, string extension) {
@@ -110,8 +115,10 @@ public static class SoundReportHandler {
 	}
 
 	public static void WriteList(string header, StreamWriter stream, ICollection<string> list) {
-		if(!string.IsNullOrEmpty(header))
+		if(!string.IsNullOrEmpty(header)) {
 			stream.WriteLine($"### {header} (`{list.Count}`)");
+		}
+
 		stream.WriteLine(string.Join("<br/>\n", list.Select(it => "- " + it)));
 	}
 
