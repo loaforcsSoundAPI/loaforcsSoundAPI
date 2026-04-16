@@ -5,8 +5,11 @@ using BepInEx.Logging;
 using HarmonyLib;
 using loaforcsSoundAPI.Core;
 using loaforcsSoundAPI.Core.Patches;
+using loaforcsSoundAPI.Core.Patches.Harmony;
+using loaforcsSoundAPI.Core.Patches.Native;
 using loaforcsSoundAPI.Reporting;
 using loaforcsSoundAPI.SoundPacks;
+using UnityEngine;
 
 namespace loaforcsSoundAPI;
 
@@ -14,10 +17,7 @@ namespace loaforcsSoundAPI;
 class loaforcsSoundAPI : BaseUnityPlugin {
 	internal new static ManualLogSource Logger { get; private set; }
 
-	static loaforcsSoundAPI _instance;
-
 	void Awake() {
-		_instance = this;
 		Logger = BepInEx.Logging.Logger.CreateLogSource(MyPluginInfo.PLUGIN_GUID);
 		Config.SaveOnConfigSet = false;
 
@@ -29,7 +29,17 @@ class loaforcsSoundAPI : BaseUnityPlugin {
 
 		Logger.LogInfo("Running patches");
 		Harmony harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), MyPluginInfo.PLUGIN_GUID);
-		UnityObjectPatch.Init(harmony);
+
+		// this is bad lmao, but the warning should only be if nativebackend is the preferred.
+		if(PatchConfig.PreferredBackend == PatchConfig.Backend.HarmonyX) {
+			Logger.LogInfo("Native backend is manually disabled.");
+			HarmonyBackend.Init(harmony);
+		} else if(NativeBackend.TryInit()) {
+			Logger.LogInfo($"Native backend is supported on {Application.unityVersion}!");
+		} else {
+			Logger.LogWarning("Native backend failed, falling back to default harmony backend!");
+			HarmonyBackend.Init(harmony);
+		}
 
 		Logger.LogInfo("Registering data");
 		SoundAPI.RegisterAll(Assembly.GetExecutingAssembly());

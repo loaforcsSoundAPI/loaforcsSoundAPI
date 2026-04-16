@@ -40,10 +40,15 @@ public class AudioSourceAdditionalData {
 			using(new SpoofBypassContext()) {
 				if(Debuggers.AudioSourceAdditionalData != null) {
 					string realClip = "null";
-					if(Source.clip) realClip = Source.clip.name;
+					if(Source.clip) {
+						realClip = Source.clip.name;
+					}
 
 					string originalClip = "null";
-					if(OriginalClip) originalClip = OriginalClip.name;
+					if(OriginalClip) {
+						originalClip = OriginalClip.name;
+					}
+
 					Debuggers.AudioSourceAdditionalData.Log($"({Source.name}) Getting real clip: {realClip} (original clip: {originalClip})");
 				}
 
@@ -54,7 +59,9 @@ public class AudioSourceAdditionalData {
 			using(new SpoofBypassContext()) {
 				if(Debuggers.AudioSourceAdditionalData != null) {
 					string originalClip = "null";
-					if(OriginalClip) originalClip = OriginalClip.name;
+					if(OriginalClip) {
+						originalClip = OriginalClip.name;
+					}
 
 					Debuggers.AudioSourceAdditionalData?.Log($"({Source.name}) Setting real clip: {value.name} (original clip: {originalClip})");
 				}
@@ -71,7 +78,9 @@ public class AudioSourceAdditionalData {
 
 			// todo: kind of icky just modifying the list raw
 			if(RequiresUpdateFunction()) {
-				if(SoundAPIAudioManager.liveAudioSourceData.Contains(this)) return; // dont add to list twice
+				if(SoundAPIAudioManager.liveAudioSourceData.Contains(this)) {
+					return; // dont add to list twice
+				}
 
 				SoundAPIAudioManager.liveAudioSourceData.Add(this);
 			} else if(SoundAPIAudioManager.liveAudioSourceData.Contains(this)) {
@@ -83,7 +92,7 @@ public class AudioSourceAdditionalData {
 	/// <summary>
 	/// Should SoundAPI ignore replacing for this Audio Source?
 	/// </summary>
-	public bool DisableReplacing { get; private set; }
+	public bool DisableReplacing { get; set; }
 
 	/// <summary>
 	/// Current Context, may be null.
@@ -91,15 +100,23 @@ public class AudioSourceAdditionalData {
 	public IContext CurrentContext { get; set; }
 
 	internal void Update() {
-		if(!RequiresUpdateFunction() || !AudioSourceIsPlaying()) return;
+		if(!RequiresUpdateFunction() || !AudioSourceIsPlaying()) {
+			return;
+		}
 
 		Debuggers.UpdateEveryFrame?.Log($"success: updating every frame for {Source.name}");
 
 		IContext context = CurrentContext ?? DefaultConditionContext.DEFAULT;
 
 		SoundInstance sound = ReplacedWith.Sounds.FirstOrDefault(x => x.Evaluate(context));
-		if(sound == null) return;
-		if(sound.Clip == Source.clip) return;
+		if(sound == null) {
+			return;
+		}
+
+		if(sound.Clip == Source.clip) {
+			return;
+		}
+
 		Debuggers.UpdateEveryFrame?.Log("new clip found, swapping!!");
 
 
@@ -120,12 +137,20 @@ public class AudioSourceAdditionalData {
 	}
 
 	public static AudioSourceAdditionalData GetOrCreate(AudioSource source) {
-		if(SoundAPIAudioManager.audioSourceData.TryGetValue(source, out AudioSourceAdditionalData sourceData)) return sourceData;
+		if(SoundAPIAudioManager.audioSourceData.TryGetValue(source, out AudioSourceAdditionalData sourceData)) {
+			return sourceData;
+		}
 
 		sourceData = new AudioSourceAdditionalData(source);
 		sourceData.OriginalClip = sourceData.RealClip;
 		SoundAPIAudioManager.audioSourceData[source] = sourceData;
 
+		Debuggers.AudioSourceAdditionalData?.Log($"created {source.gameObject.name} = {source.m_CachedPtr.ToInt64()}");
+
 		return sourceData;
+	}
+
+	internal static bool TryGet(AudioSource source, out AudioSourceAdditionalData data) {
+		return SoundAPIAudioManager.audioSourceData.TryGetValue(source, out data);
 	}
 }
