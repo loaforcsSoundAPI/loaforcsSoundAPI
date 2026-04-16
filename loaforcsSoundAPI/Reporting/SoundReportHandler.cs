@@ -7,6 +7,7 @@ using System.Threading;
 using BepInEx;
 using BepInEx.Configuration;
 using loaforcsSoundAPI.Core.JSON;
+using loaforcsSoundAPI.Core.Patches.Native;
 using loaforcsSoundAPI.Core.Util;
 using loaforcsSoundAPI.Reporting.Data;
 using loaforcsSoundAPI.SoundPacks;
@@ -42,7 +43,7 @@ public static class SoundReportHandler {
 			stream.WriteLine("");
 		};
 	}
-		
+
 	internal static void Register() {
 		Directory.CreateDirectory(GetFolder()); // make sure path exists.
 		CurrentReport = new SoundReport();
@@ -50,39 +51,41 @@ public static class SoundReportHandler {
 		loaforcsSoundAPI.Logger.LogWarning("SoundAPI is generating a report!");
 		loaforcsSoundAPI.Logger.LogInfo($"The report will be located at '{LogFormats.FormatFilePath(Path.Combine(GetFolder(), GetFileName(CurrentReport, ".md")))}");
 
-		Application.quitting += () => {
-			WriteReportToFile(CurrentReport);
-		};
+		Application.quitting += () => { WriteReportToFile(CurrentReport); };
 
 		SoundPackLoadPipeline.OnFinishedPipeline += () => {
 			foreach(SoundPack pack in SoundPackDataHandler.LoadedPacks) {
 				CurrentReport.SoundPackNames.Add(pack.Name);
 			}
 		};
-		
+
 		AddReportSection("General Information", (stream, report) => {
+			stream.WriteLine($"Game name: `{Application.productName}` `v{Application.version}` by `{Application.companyName}`<br/>");
+			stream.WriteLine($"Unity version: `{Application.unityVersion}<br/>");
+			stream.WriteLine($"Native Backend supported: `{NativeBackend.TryGetSettings(out _)}`, enabled: `{NativeBackend.Enabled}` <br/>");
 			stream.WriteLine($"SoundAPI version: `{MyPluginInfo.PLUGIN_VERSION}` <br/><br/>");
-			
+
 			stream.WriteLine($"Audio-clips loaded: `{report.AudioClipsLoaded}` <br/>");
 			stream.WriteLine($"Match strings registered: `{SoundPackDataHandler.SoundReplacements.Values.Sum(it => it.Count)}` <br/>");
-			
+
 			WriteList("Loaded sound-packs", stream, report.SoundPackNames);
 		});
-		
+
 		AddReportSection("Dynamic Data", (stream, _) => {
-			if(SoundAPI.CurrentNetworkAdapter != null)
+			if(SoundAPI.CurrentNetworkAdapter != null) {
 				stream.WriteLine($"Network Adapter: `{SoundAPI.CurrentNetworkAdapter.Name}` <br/><br/>");
-			
+			}
+
 			WriteList("Registered Conditions", stream, SoundPackDataHandler.conditionFactories.Keys.ToList());
 		});
-		
-		AddReportSection("All Played Sounds", (stream, report) => {
-			WriteList(null, stream, report.PlayedSounds.Select(it => it.FormatForReport()).ToList());
-		});
+
+		AddReportSection("All Played Sounds", (stream, report) => { WriteList(null, stream, report.PlayedSounds.Select(it => it.FormatForReport()).ToList()); });
+
+		AddReportSection("Native Backend", (stream, report) => { });
 	}
 
 	internal static void Bind(ConfigFile file) {
-		if (file.Bind("Developer", "GenerateReports", false, "While true SoundAPI will generate a json and markdown file per session that records information SoundAPI and related mods find.").Value) {
+		if(file.Bind("Developer", "GenerateReports", false, "While true SoundAPI will generate a json and markdown file per session that records information SoundAPI and related mods find.").Value) {
 			Register();
 		}
 	}
@@ -97,23 +100,25 @@ public static class SoundReportHandler {
 
 	static void WriteReportToFile(SoundReport report) {
 		using StreamWriter outputFile = new StreamWriter(Path.Combine(GetFolder(), GetFileName(report, ".md")));
-		
+
 		outputFile.WriteLine("# Generated Report");
 		outputFile.WriteLine($"At {report.StartedAt} :3");
 		outputFile.WriteLine("");
 
 		_reportSections(outputFile, report);
-		
+
 		outputFile.Flush();
 		outputFile.Close();
-		
+
 		using StreamWriter jsonFile = new StreamWriter(Path.Combine(GetFolder(), GetFileName(report, ".json")));
 		jsonFile.WriteLine(JsonConvert.SerializeObject(report, Formatting.Indented));
 	}
 
 	public static void WriteList(string header, StreamWriter stream, ICollection<string> list) {
-		if(!string.IsNullOrEmpty(header))
+		if(!string.IsNullOrEmpty(header)) {
 			stream.WriteLine($"### {header} (`{list.Count}`)");
+		}
+
 		stream.WriteLine(string.Join("<br/>\n", list.Select(it => "- " + it)));
 	}
 

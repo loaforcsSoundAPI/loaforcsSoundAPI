@@ -11,33 +11,28 @@ namespace loaforcsSoundAPI.Core;
 class SoundAPIAudioManager : MonoBehaviour {
 	internal static readonly Dictionary<AudioSource, AudioSourceAdditionalData> audioSourceData = [];
 	internal static readonly List<AudioSourceAdditionalData> liveAudioSourceData = []; // this is a list of audio source additonal data's that should have their .Update() called
-	
+
 	static SoundAPIAudioManager Instance;
 
 	void Awake() {
 		SceneManager.sceneLoaded += (_, _) => {
 			if(!Instance)
 				SpawnManager();
-			
-			RunCleanup();
 		};
-		
 	}
 
 	internal static void SpawnManager() {
 		loaforcsSoundAPI.Logger.LogInfo("Starting AudioManager.");
-		GameObject manager = new("SoundAPI_AudioManager");
+		GameObject manager = new GameObject("SoundAPI_AudioManager");
 		DontDestroyOnLoad(manager);
 		Instance = manager.AddComponent<SoundAPIAudioManager>();
-		
 	}
-	
+
 	// this seems icky but i do not care
 	void Update() {
 		Debuggers.UpdateEveryFrame?.Log($"sanity check: soundapi audio manager is running!");
 
-		
-		foreach (AudioSourceAdditionalData data in liveAudioSourceData) {
+		foreach(AudioSourceAdditionalData data in liveAudioSourceData) {
 			data.Update();
 		}
 	}
@@ -53,15 +48,16 @@ class SoundAPIAudioManager : MonoBehaviour {
 
 	// This isn't particularly good, but because AudioSourceAdditionalData is not a behaviour it can't keep track of OnEnable, OnDisable itself
 	// maybe putting this on a background thread that runs every few seconds would work but really i don't care too much, i want this project done
-	static void RunCleanup() {
+	// now with native backend this should only run on the harmony fallback backend
+	internal static void RunCleanup() {
 		loaforcsSoundAPI.Logger.LogDebug("cleaning up old audio source entries");
-		foreach (AudioSource source in audioSourceData.Keys.ToArray()) {
-			if (!source) {
-				if (liveAudioSourceData.Contains(audioSourceData[source])) {
-					liveAudioSourceData.Remove(audioSourceData[source]);
-				}
-				audioSourceData.Remove(source);
-			}
+		foreach(AudioSourceAdditionalData data in audioSourceData.Values.ToArray()) {
+			if(!data.Source) Remove(data);
 		}
+	}
+
+	internal static void Remove(AudioSourceAdditionalData data) {
+		if(liveAudioSourceData.Contains(data)) liveAudioSourceData.Remove(data);
+		audioSourceData.Remove(data.Source);
 	}
 }

@@ -2,10 +2,12 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using BepInEx.Configuration;
+using JetBrains.Annotations;
 using loaforcsSoundAPI.Core;
 using loaforcsSoundAPI.Reporting;
 using loaforcsSoundAPI.Reporting.Data;
@@ -20,6 +22,18 @@ using Random = UnityEngine.Random;
 
 namespace loaforcsSoundAPI.SoundPacks;
 
+readonly struct ReplacementResult {
+	public ReplacementResult(AudioClip replacement, SoundReplacementGroup group) {
+		ReplacedClip = replacement;
+		ReplacedWith = group;
+		IsUpdateEveryFrame = group.Parent.UpdateEveryFrame;
+	}
+
+	public AudioClip ReplacedClip { get; }
+	public SoundReplacementGroup ReplacedWith { get; }
+	public bool IsUpdateEveryFrame { get; }
+}
+
 static class SoundReplacementHandler {
 	const int TOKEN_PARENT_NAME = 0;
 	const int TOKEN_OBJECT_NAME = 1;
@@ -29,46 +43,36 @@ static class SoundReplacementHandler {
 	static readonly Dictionary<int, string> _cachedObjectNames = [];
 	static readonly StringBuilder _builder = new StringBuilder();
 
+	static string[] _workingName = [];
+
 	internal static void Register() {
-		SceneManager.sceneLoaded += (scene, _) => {
-			_cachedObjectNames.Clear();
-
-			foreach(AudioSource source in Object.FindObjectsOfType<AudioSource>(true)) {
-				if(source.gameObject.scene != scene) continue; // already processed
-				CheckAudioSource(source);
-			}
-		};
+		SceneManager.sceneLoaded += (scene, _) => { _cachedObjectNames.Clear(); };
 	}
 
-	internal static void CheckAudioSource(AudioSource source) {
-		if(!source.playOnAwake) return;
-		if(!source.enabled) return;
-
-		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(source);
-
-		if(!TryReplaceAudio(source, data.OriginalClip, out AudioClip replacement)) return;
-
-		source.Stop();
-		if(replacement == null) return;
-		data.RealClip = replacement;
-
-		source.Play();
-	}
-
-	internal static bool TryReplaceAudio(AudioSource source, AudioClip clip, out AudioClip replacement) {
-		replacement = null;
-		if(source.gameObject == null) // i dont even remember why this is here again
+	static bool ShouldBeReplaced(in AudioSourcePlayEvent @event) {
+		if(!@event.Source.gameObject) {
 			return false;
+		}
 
-		AudioSourceAdditionalData sourceData = AudioSourceAdditionalData.GetOrCreate(source);
-		if(sourceData.ReplacedWith != null && sourceData.ReplacedWith.Parent.UpdateEveryFrame) return false; // the SoundAPIAudioManager is currently handling it, therefore we should not intervene.
-		if(sourceData.DisableReplacing) return false; // another mod has disabled replacing
+		if(@event.Data.ReplacedWith != null && @event.Data.ReplacedWith.Parent.UpdateEveryFrame) {
+			return false;
+		}
+
+		return !@event.Data.DisableReplacing;
+	}
+
+	internal static bool TryReplaceAudio(in AudioSourcePlayEvent @event, [NotNullWhen(true)] out ReplacementResult? result) {
+		result = null;
+
+		if(!ShouldBeReplaced(in @event)) {
+			return false;
+		}
 
 		string[] name = ArrayPool<string>.Shared.Rent(3);
 
 		if(
-			!TryProcessName(ref name, source, clip) ||
-			!TryGetReplacementClip(name, out SoundReplacementGroup group, out AudioClip newClip, sourceData.CurrentContext ?? DefaultConditionContext.DEFAULT)
+			!TryProcessName(ref name, @event.Source, @event.Clip) ||
+			!TryGetReplacementClip(name, out SoundReplacementGroup group, out AudioClip newClip, @event.Context ?? DefaultConditionContext.DEFAULT)
 		) {
 			ArrayPool<string>.Shared.Return(name);
 			return false;
@@ -76,17 +80,35 @@ static class SoundReplacementHandler {
 
 		ArrayPool<string>.Shared.Return(name);
 
-		newClip.name = clip.name;
-		replacement = newClip;
-		sourceData.ReplacedWith = group;
+		newClip.name = group.Pack.Name + " " + @event.Clip.name;
+		result = new ReplacementResult(newClip, group);
 
-		if(group.Parent.UpdateEveryFrame) Debuggers.UpdateEveryFrame?.Log("swapped to a clip that uses update_every_frame !!!");
+		// todo: this should probably not be handled here as with UEFOneShotFix the resulting AudioSource will be different than the one passed in the event.
+		// it should be handled instead in the patches where 
+		@event.Data.ReplacedWith = group;
+
+		if(result.Value.IsUpdateEveryFrame) {
+			Debuggers.UpdateEveryFrame?.Log($"swapped to a clip that uses update_every_frame !!! isOneShot = {@event.IsOneShot}");
+		}
 
 		return true;
 	}
 
+	[Obsolete]
+	internal static bool TryReplaceAudio(AudioSource source, AudioClip clip, out AudioClip replacement) {
+		if(TryReplaceAudio(new AudioSourcePlayEvent(source, clip, false), out ReplacementResult? result)) {
+			replacement = result.Value.ReplacedClip;
+			return true;
+		}
+
+		replacement = null;
+		return false;
+	}
+
 	static string TrimObjectName(GameObject gameObject) {
-		if(_cachedObjectNames.ContainsKey(gameObject.GetHashCode())) return _cachedObjectNames[gameObject.GetHashCode()];
+		if(_cachedObjectNames.ContainsKey(gameObject.GetHashCode())) {
+			return _cachedObjectNames[gameObject.GetHashCode()];
+		}
 
 		_builder.Clear();
 		_builder.Append(gameObject.name);
@@ -97,14 +119,20 @@ static class SoundReplacementHandler {
 		// todo: maybe look at combining the two loops below? i dont think it'll mean much to care but might do something?
 
 		for(int i = 0; i < _builder.Length; i++) {
-			if(_builder[i] != '(') continue;
+			if(_builder[i] != '(') {
+				continue;
+			}
+
 			int start = i;
 			i++; // move to the digit part
 			while(i < _builder.Length && char.IsDigit(_builder[i])) {
 				i++;
 			}
 
-			if(i >= _builder.Length || _builder[i] != ')') continue;
+			if(i >= _builder.Length || _builder[i] != ')') {
+				continue;
+			}
+
 			_builder.Remove(start, i - start + 1);
 			i = start - 1;
 		}
@@ -112,7 +140,9 @@ static class SoundReplacementHandler {
 		// Handle trimming ending whitespace
 		int endIndex = _builder.Length;
 		for(; endIndex > 0; endIndex--) {
-			if(_builder[endIndex - 1] != ' ') break;
+			if(_builder[endIndex - 1] != ' ') {
+				break;
+			}
 		}
 
 		_builder.Remove(endIndex, _builder.Length - endIndex);
@@ -124,11 +154,15 @@ static class SoundReplacementHandler {
 	}
 
 	static bool TryProcessName(ref string[] name, AudioSource source, AudioClip clip) {
-		if(clip == null) return false;
-		if(source.transform.parent == null)
+		if(clip == null) {
+			return false;
+		}
+
+		if(source.transform.parent == null) {
 			name[TOKEN_PARENT_NAME] = "*";
-		else
+		} else {
 			name[TOKEN_PARENT_NAME] = TrimObjectName(source.transform.parent.gameObject);
+		}
 
 		name[TOKEN_OBJECT_NAME] = TrimObjectName(source.gameObject);
 		name[TOKEN_CLIP_NAME] = clip.name;
@@ -146,7 +180,9 @@ static class SoundReplacementHandler {
 
 			if(!SoundReportHandler.CurrentReport.PlayedSounds.Any(playedSound.Equals))
 				// only add new unique ones
+			{
 				SoundReportHandler.CurrentReport.PlayedSounds.Add(playedSound);
+			}
 		}
 
 		Debuggers.MatchStrings?.Log($"{name[TOKEN_PARENT_NAME]}:{name[TOKEN_OBJECT_NAME]}:{name[TOKEN_CLIP_NAME]}");
@@ -156,11 +192,15 @@ static class SoundReplacementHandler {
 	static bool TryGetReplacementClip(string[] name, out SoundReplacementGroup group, out AudioClip clip, IContext context) {
 		group = null;
 		clip = null;
-		if(name == null) return false;
+		if(name == null) {
+			return false;
+		}
 
 		Debuggers.SoundReplacementHandler?.Log($"beginning replacement attempt for {name[TOKEN_CLIP_NAME]}");
 
-		if(!SoundPackDataHandler.SoundReplacements.TryGetValue(name[TOKEN_CLIP_NAME], out List<SoundReplacementGroup> possibleCollections)) return false;
+		if(!SoundPackDataHandler.SoundReplacements.TryGetValue(name[TOKEN_CLIP_NAME], out List<SoundReplacementGroup> possibleCollections)) {
+			return false;
+		}
 
 		Debuggers.SoundReplacementHandler?.Log("sound dictionary hit");
 
@@ -168,13 +208,17 @@ static class SoundReplacementHandler {
 			.Where(it => it.Parent.Evaluate(context) && it.Evaluate(context) && CheckGroupMatches(it, name))
 			.ToList();
 
-		if(possibleCollections.Count == 0) return false;
+		if(possibleCollections.Count == 0) {
+			return false;
+		}
 
 		Debuggers.SoundReplacementHandler?.Log("sound group that matches");
 
 		group = possibleCollections[Random.Range(0, possibleCollections.Count)];
 		List<SoundInstance> replacements = group.Sounds.Where(it => it.Evaluate(context)).ToList();
-		if(replacements.Count == 0) return false;
+		if(replacements.Count == 0) {
+			return false;
+		}
 
 		Debuggers.SoundReplacementHandler?.Log("has valid sounds");
 
@@ -193,7 +237,9 @@ static class SoundReplacementHandler {
 			sound = t;
 			chosenWeight -= sound.Weight;
 
-			if(chosenWeight <= 0) break;
+			if(chosenWeight <= 0) {
+				break;
+			}
 		}
 
 		clip = sound.Clip;
@@ -207,7 +253,9 @@ static class SoundReplacementHandler {
 
 	static bool CheckGroupMatches(SoundReplacementGroup group, string[] a) {
 		foreach(string b in group.Matches) {
-			if(MatchStrings(a, b)) return true;
+			if(MatchStrings(a, b)) {
+				return true;
+			}
 		}
 
 		return false;
@@ -215,8 +263,14 @@ static class SoundReplacementHandler {
 
 	static bool MatchStrings(string[] a, string b) {
 		string[] expected = b.Split(":");
-		if(expected[TOKEN_PARENT_NAME] != "*" && expected[TOKEN_PARENT_NAME] != a[TOKEN_PARENT_NAME]) return false; // parent gameobject mismatch
-		if(expected[TOKEN_OBJECT_NAME] != "*" && expected[TOKEN_OBJECT_NAME] != a[TOKEN_OBJECT_NAME]) return false; // gameobject mismatch
+		if(expected[TOKEN_PARENT_NAME] != "*" && expected[TOKEN_PARENT_NAME] != a[TOKEN_PARENT_NAME]) {
+			return false; // parent gameobject mismatch
+		}
+
+		if(expected[TOKEN_OBJECT_NAME] != "*" && expected[TOKEN_OBJECT_NAME] != a[TOKEN_OBJECT_NAME]) {
+			return false; // gameobject mismatch
+		}
+
 		return a[TOKEN_CLIP_NAME] == expected[TOKEN_CLIP_NAME];
 	}
 }

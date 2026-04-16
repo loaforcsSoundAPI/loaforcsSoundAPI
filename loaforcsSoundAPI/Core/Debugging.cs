@@ -21,6 +21,8 @@ static class Debuggers {
 
 	internal static DebugLogSource AudioClipSpoofing;
 
+	internal static DebugLogSource NativeBackend;
+
 	internal static void Bind(ConfigFile file) {
 		foreach(FieldInfo fieldInfo in typeof(Debuggers).GetFields(BindingFlags.Static | BindingFlags.NonPublic)) {
 			if(file.Bind("InternalDebugging", fieldInfo.Name, false, "Enable/Disable this DebugLogSource. Should only be true if you know what you are doing or have been asked to.").Value) {
