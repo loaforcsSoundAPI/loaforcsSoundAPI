@@ -18,16 +18,16 @@ public abstract class Condition : IValidatable {
 	/// Utility property to quickly access an instance of a condition's <see cref="SoundPack"/>
 	/// </summary>
 	protected SoundPack Pack => Parent.Pack;
-	
+
 	/// <summary>
 	/// When a condition is explicitly set to 'constant' it will compute the value on load.
 	/// The 
 	/// todo: For the config condition the Constant value should be implied to be true
 	/// </summary>
 	public bool? Constant { get; private set; }
-	
-	protected internal virtual void OnRegistered() {}
-	
+
+	protected internal virtual void OnRegistered() { }
+
 	/// <summary>
 	/// Evaluate Condition
 	/// </summary>
@@ -37,19 +37,19 @@ public abstract class Condition : IValidatable {
 
 	/// <inheritdoc />
 	public virtual List<IValidatable.ValidationResult> Validate() {
-		return [];
+		return [ ];
 	}
 
 	/// <inheritdoc cref="EvaluateRangeOperator(double,string)"/>
-    protected bool EvaluateRangeOperator(int number, string condition) {
-        return EvaluateRangeOperator((double)number, condition);
-    }
+	protected bool EvaluateRangeOperator(int number, string condition) {
+		return EvaluateRangeOperator((double) number, condition);
+	}
 
-	
+
 	/// <inheritdoc cref="EvaluateRangeOperator(double,string)"/>
 	protected bool EvaluateRangeOperator(float number, string condition) {
-        return EvaluateRangeOperator((double) number, condition);
-    }
+		return EvaluateRangeOperator((double) number, condition);
+	}
 
 	/// <summary>
 	/// Evaluates a range operator.
@@ -58,62 +58,66 @@ public abstract class Condition : IValidatable {
 	/// <param name="condition">The range of values to check.</param>
 	/// <returns></returns>
 	protected bool EvaluateRangeOperator(double value, string condition) {
-        // Splitting the condition string by ".."
-        string[] parts = condition.Split("..");
+		// Splitting the condition string by ".."
+		string[] parts = condition.Split("..");
 
-        if(parts.Length == 1) {
-            // Case when there's only one number in the condition
-            double target;
-            if(double.TryParse(parts[0], out target)) {
-                return value == target;
-            } else {
-                // Invalid input
-                return false;
-            }
-        } 
+		if(parts.Length == 1) {
+			// Case when there's only one number in the condition
+			double target;
+			if(double.TryParse(parts[0], out target)) {
+				return value == target;
+			} else {
+				// Invalid input
+				return false;
+			}
+		}
+
 		if(parts.Length == 2) {
-            // Case when there's a range specified
-            double lowerBound, upperBound;
+			// Case when there's a range specified
+			double lowerBound, upperBound;
 
-            if(parts[0] == "") {
-                lowerBound = double.MinValue;
-            } else {
-                if(!double.TryParse(parts[0], out lowerBound)) {
-                    // Invalid input
-                    return false;
-                }
-            }
+			if(parts[0] == "") {
+				lowerBound = double.MinValue;
+			} else {
+				if(!double.TryParse(parts[0], out lowerBound)) {
+					// Invalid input
+					return false;
+				}
+			}
 
-            if(parts[1] == "") {
-                upperBound = double.MaxValue;
-            } else {
-                if(!double.TryParse(parts[1], out upperBound)) {
-                    // Invalid input
-                    return false;
-                }
-            }
+			if(parts[1] == "") {
+				upperBound = double.MaxValue;
+			} else {
+				if(!double.TryParse(parts[1], out upperBound)) {
+					// Invalid input
+					return false;
+				}
+			}
 
-            return (value >= lowerBound && value <= upperBound);
-        }
+			return value >= lowerBound && value <= upperBound;
+		}
+
 		return false;
-    }
+	}
 
 	protected bool ValidateRangeOperator(string condition, out IValidatable.ValidationResult result) {
 		result = null;
-		if (string.IsNullOrEmpty(condition)) {
+		if(string.IsNullOrEmpty(condition)) {
 			result = new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Range operator can not be missing or empty!");
 			return false;
 		}
-        
+
 		string[] parts = condition.Split("..");
-		
-		
-		switch (parts.Length) {
-			case 1: 
+
+
+		switch(parts.Length) {
+			case 1:
 				// Case when there's only one number in the condition
 				double target;
-				if(!double.TryParse(parts[0], out target))
+				if(!double.TryParse(parts[0], out target)) {
 					result = new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Failed to parse: '{parts[0]}' as a number!");
+				}
+
 				break;
 			case 2:
 				// Case when there's a range specified
@@ -136,8 +140,9 @@ public abstract class Condition : IValidatable {
 						result = new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Failed to parse: '{parts[1]}' as a number!");
 					}
 				}
+
 				break;
-			case >2:
+			case > 2:
 				result = new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Range operator: '{condition}' uses .. more than once!");
 				break;
 		}
@@ -156,7 +161,7 @@ sealed class InvalidCondition(string type) : Condition {
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {
-		if (string.IsNullOrEmpty(type)) {
+		if(string.IsNullOrEmpty(type)) {
 			return [
 				new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, "Condition must have a type!")
 			];
@@ -169,15 +174,15 @@ sealed class InvalidCondition(string type) : Condition {
 }
 
 sealed class ConstantCondition : Condition {
-	public static ConstantCondition TRUE = new(true);
-	public static ConstantCondition FALSE = new(false);
-	
+	public static ConstantCondition TRUE = new ConstantCondition(true);
+	public static ConstantCondition FALSE = new ConstantCondition(false);
+
 	public bool Value { get; private set; }
 
 	ConstantCondition(bool constant) {
 		Value = constant;
 	}
-	
+
 	public override bool Evaluate(IContext context) {
 		return Value;
 	}
@@ -190,15 +195,14 @@ sealed class ConstantCondition : Condition {
 /// <seealso cref="IContext"/>
 /// <typeparam name="TContext">Type of context</typeparam>
 public abstract class Condition<TContext> : Condition where TContext : IContext {
-	
 	/// <summary>
 	/// Evaluate Condition. If the context type of the parameter does not match this condition, it will evaluate using the fallback.
 	/// </summary>
 	/// <param name="context">Any possible context</param>
 	/// <returns>If condition succeeds</returns>
 	public override bool Evaluate(IContext context) {
-		if (context is not TContext type) return EvaluateFallback(context); // mismatching context, use fallback
-		
+		if(context is not TContext type) return EvaluateFallback(context); // mismatching context, use fallback
+
 		return EvaluateWithContext(type);
 	}
 

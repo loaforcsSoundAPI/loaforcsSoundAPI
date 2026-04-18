@@ -13,7 +13,7 @@ static class AudioSourcePatch {
 
 	// todo: this should maybe be supported in NativeBackend?
 	[HarmonyPrefix]
-	[HarmonyPatch(nameof(AudioSource.PlayOneShot), [typeof(AudioClip), typeof(float)])]
+	[HarmonyPatch(nameof(AudioSource.PlayOneShot), [ typeof(AudioClip), typeof(float) ])]
 	static bool PlayOneShot(AudioSource __instance, ref AudioClip clip) {
 		if(!clip) {
 			return true; // returning true here gives the default unity warning

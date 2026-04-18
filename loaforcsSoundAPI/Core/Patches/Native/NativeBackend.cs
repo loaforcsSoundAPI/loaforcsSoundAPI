@@ -33,7 +33,7 @@ static class NativeBackend {
 	];
 
 	[UsedImplicitly]
-	static List<NativeDetour> _allDetours = [];
+	static List<NativeDetour> _allDetours = [ ];
 
 	internal static bool TryGetSettings(out NativeBackendSettings settings) {
 		settings = _allSettings.FirstOrDefault(it => it.CurrentVersionMatches);
@@ -91,20 +91,20 @@ static class NativeBackend {
 			offset = Object.GetOffsetOfInstanceIDInCPlusPlusObject();
 		}
 
-		return *(int*)(obj + offset);
+		return *(int*) (obj + offset);
 	}
 
 	internal static unsafe IntPtr GetGCHandle(IntPtr obj) {
 		int offset = 0x18; // todo: magic number, does it change?
 
-		return *(IntPtr*)(obj + offset);
+		return *(IntPtr*) (obj + offset);
 	}
 
 	internal static T GetScriptingWrapper<T>(IntPtr self) where T : Object {
 		if(GetGCHandle(self) != IntPtr.Zero) { // faster way to do it
 			IntPtr handlePtr = GetGCHandle(self);
 			GCHandle handle = GCHandle.FromIntPtr(handlePtr);
-			return (T)handle.Target;
+			return (T) handle.Target;
 		}
 
 		// backup. used usually by POA
@@ -114,6 +114,6 @@ static class NativeBackend {
 		Object obj = Resources.InstanceIDToObject(instanceID);
 		Debuggers.NativeBackend?.Log($"obj = {obj}");
 
-		return (T)obj;
+		return (T) obj;
 	}
 }

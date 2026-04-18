@@ -17,10 +17,11 @@ static class UnityObjectPatch {
 			if(method.Name != nameof(Object.Instantiate)) continue;
 			Debuggers.AudioSourceAdditionalData?.Log($"patching {method}");
 
-			if(method.IsGenericMethod)
+			if(method.IsGenericMethod) {
 				harmony.Patch(method.MakeGenericMethod(typeof(Object)), postfix: postfixPatch);
-			else
+			} else {
 				harmony.Patch(method, postfix: postfixPatch);
+			}
 		}
 	}
 

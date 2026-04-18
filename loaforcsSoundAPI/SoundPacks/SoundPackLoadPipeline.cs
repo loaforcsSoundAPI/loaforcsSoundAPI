@@ -28,7 +28,7 @@ static class SoundPackLoadPipeline {
 
 	// todo: maybe remove
 	internal static event Action OnFinishedPipeline = delegate { };
-	static Dictionary<string, List<string>> mappings = [];
+	static Dictionary<string, List<string>> mappings = [ ];
 
 	// todo: probably change this to be else where? soundinstance needs this for validation.
 	internal static Dictionary<string, AudioType> audioExtensions = new Dictionary<string, AudioType> {
@@ -57,7 +57,7 @@ static class SoundPackLoadPipeline {
 		timer.Restart();
 
 		// Step 2: Load mappings
-		List<LoadSoundOperation> webRequestOperations = [];
+		List<LoadSoundOperation> webRequestOperations = [ ];
 
 		// todo: function
 		foreach(SoundPack pack in packs) {
@@ -66,10 +66,11 @@ static class SoundPackLoadPipeline {
 				Dictionary<string, List<string>> packDefinedMappings = JSONDataLoader.LoadFromFile<Dictionary<string, List<string>>>(mappingFile);
 
 				foreach(KeyValuePair<string, List<string>> entry in packDefinedMappings) {
-					if(mappings.ContainsKey(entry.Key))
+					if(mappings.ContainsKey(entry.Key)) {
 						mappings[entry.Key].AddRange(entry.Value);
-					else
+					} else {
 						mappings[entry.Key] = entry.Value;
+					}
 				}
 			}
 		}
@@ -121,7 +122,7 @@ static class SoundPackLoadPipeline {
 		bool threadsShouldExit = false;
 
 		ConcurrentQueue<LoadSoundOperation> queuedOperations = new ConcurrentQueue<LoadSoundOperation>();
-		ConcurrentBag<Exception> threadPoolExceptions = [];
+		ConcurrentBag<Exception> threadPoolExceptions = [ ];
 
 		// TODO: fix me, this is not good logic.
 		for(int i = 0; i < 16; i++) {
@@ -193,7 +194,7 @@ static class SoundPackLoadPipeline {
 	}
 
 	static List<SoundPack> FindAndLoadPacks(string entryPoint = "sound_pack.json") {
-		Dictionary<string, SoundPack> packs = [];
+		Dictionary<string, SoundPack> packs = [ ];
 
 		foreach(string file in Directory.GetFiles(Paths.PluginPath, entryPoint, SearchOption.AllDirectories)) {
 			Debuggers.SoundReplacementLoader?.Log($"found entry point: '{file}'!");
@@ -215,17 +216,20 @@ static class SoundPackLoadPipeline {
 			if(IValidatable.LogAndCheckValidationResult($"loading '{file}'", validationResult, pack.Logger)) {
 				BepInPlugin metadata;
 
-				if(PackLoadingConfig.MetadataSpoofing)
+				if(PackLoadingConfig.MetadataSpoofing) {
 					metadata = new BepInPlugin(pack.GUID, pack.Name, pack.Version ?? "1.0.0");
-				else
+				} else {
 					metadata = MetadataHelper.GetMetadata(typeof(loaforcsSoundAPI));
+				}
 
 				ConfigFile configFile = loaforcsSoundAPI.GenerateConfigFile(pack.GUID, metadata);
 				configFile.SaveOnConfigSet = false; // dumb setting that's enabled by default
 				pack.Bind(configFile);
 
-				if(configFile.Count > 0)
+				if(configFile.Count > 0) {
 					configFile.Save();
+				}
+
 				packs[pack.Name] = pack;
 				SoundPackDataHandler.AddLoadedPack(pack);
 				Debuggers.SoundReplacementLoader?.Log($"pack folder: {pack.PackFolder}");
@@ -237,7 +241,7 @@ static class SoundPackLoadPipeline {
 	}
 
 	static List<SoundReplacementCollection> LoadSoundReplacementCollections(SoundPack pack, ref SkippedResults skippedStats) {
-		List<SoundReplacementCollection> collections = [];
+		List<SoundReplacementCollection> collections = [ ];
 		if(!Directory.Exists(Path.Combine(pack.PackFolder, "replacers"))) return collections; // purely for mods that only have mappings
 
 		Debuggers.SoundReplacementLoader?.Log($"start loading '{pack.Name}'!");
@@ -257,7 +261,7 @@ static class SoundPackLoadPipeline {
 
 			if(!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", collection.Validate(), pack.Logger)) continue;
 
-			List<IValidatable.ValidationResult> groupValidations = [];
+			List<IValidatable.ValidationResult> groupValidations = [ ];
 			// not the cleanest
 			foreach(SoundReplacementGroup replacementGroup in collection.Replacements) {
 				replacementGroup.Parent = collection; // !!! - Setting data while doing validation. If this ever breaks it's here!
@@ -277,10 +281,11 @@ static class SoundPackLoadPipeline {
 
 					replacementGroup.Matches.Remove(match);
 
-					if(mappings.TryGetValue(match[1..], out List<string> mappedStrings))
+					if(mappings.TryGetValue(match[1..], out List<string> mappedStrings)) {
 						replacementGroup.Matches.AddRange(mappedStrings);
-					else
+					} else {
 						validationResults.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Mapping: '{match}' has not been found. If it's part of a soft dependency, make sure to use a 'mod_installed' condition with 'constant' enabled."));
+					}
 				}
 
 				if(validationResults.Count != 0) {

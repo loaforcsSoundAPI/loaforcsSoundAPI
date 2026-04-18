@@ -27,11 +27,12 @@ class ModInstalledCondition : Condition {
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {
-		if(string.IsNullOrEmpty(Value))
+		if(string.IsNullOrEmpty(Value)) {
 			return [
 				new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Value on 'mod_installed' must be there and must not be empty.")
 			];
+		}
 
-		return [];
+		return [ ];
 	}
 }

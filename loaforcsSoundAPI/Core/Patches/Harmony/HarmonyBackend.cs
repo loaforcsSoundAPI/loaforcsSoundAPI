@@ -27,13 +27,14 @@ static class HarmonyBackend {
 
 		if(!source.playOnAwake) return;
 		if(!source.isActiveAndEnabled) return;
-		if(data.RealClip)
+		if(data.RealClip) {
 			source.Play();
+		}
 	}
 
 	[HarmonyPrefix]
 	[HarmonyPatch(typeof(AudioSource))]
-	[HarmonyPatch(nameof(AudioSource.Play), [])]
+	[HarmonyPatch(nameof(AudioSource.Play), [ ])]
 	[HarmonyPatch(nameof(AudioSource.Play), typeof(ulong))]
 	[HarmonyPatch(nameof(AudioSource.Play), typeof(double))]
 	static bool Play(AudioSource __instance) {

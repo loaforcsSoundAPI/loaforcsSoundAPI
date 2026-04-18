@@ -35,11 +35,12 @@ class NotCondition : Condition {
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {
-		if(Condition == null)
+		if(Condition == null) {
 			return [
 				new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, "'not' condition has no valid condition to invert!")
 			];
+		}
 
-		return [];
+		return [ ];
 	}
 }

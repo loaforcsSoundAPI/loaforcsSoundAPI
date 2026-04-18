@@ -46,8 +46,10 @@ public class CounterCondition : Condition {
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {
-		if(!ValidateRangeOperator(Value, out IValidatable.ValidationResult result))
-			return [result];
-		return [];
+		if(!ValidateRangeOperator(Value, out IValidatable.ValidationResult result)) {
+			return [ result ];
+		}
+
+		return [ ];
 	}
 }

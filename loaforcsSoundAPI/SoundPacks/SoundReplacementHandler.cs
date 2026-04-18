@@ -39,11 +39,11 @@ static class SoundReplacementHandler {
 	const int TOKEN_OBJECT_NAME = 1;
 	const int TOKEN_CLIP_NAME = 2;
 
-	static readonly string[] _suffixesToRemove = ["(Clone)"];
-	static readonly Dictionary<int, string> _cachedObjectNames = [];
+	static readonly string[] _suffixesToRemove = [ "(Clone)" ];
+	static readonly Dictionary<int, string> _cachedObjectNames = [ ];
 	static readonly StringBuilder _builder = new StringBuilder();
 
-	static string[] _workingName = [];
+	static string[] _workingName = [ ];
 
 	internal static void Register() {
 		SceneManager.sceneLoaded += (scene, _) => { _cachedObjectNames.Clear(); };

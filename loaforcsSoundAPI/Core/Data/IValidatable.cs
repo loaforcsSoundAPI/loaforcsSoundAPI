@@ -13,9 +13,9 @@ public interface IValidatable {
 	/// Run validations
 	/// </summary>
 	/// <returns>Non-successful validations</returns>
-	public List<ValidationResult> Validate();
+	List<ValidationResult> Validate();
 
-	public enum ResultType {
+	enum ResultType {
 		WARN,
 		FAIL
 	}
@@ -25,7 +25,7 @@ public interface IValidatable {
 	/// </summary>
 	/// <param name="resultType">Non-success result type</param>
 	/// <param name="reason">Description of issue</param>
-	public class ValidationResult(ResultType resultType, string reason = null) {
+	class ValidationResult(ResultType resultType, string reason = null) {
 		public ResultType Status { get; private set; } = resultType;
 		public string Reason { get; private set; } = reason ?? string.Empty;
 	}
@@ -62,7 +62,9 @@ public interface IValidatable {
 
 		if(warns != 0) {
 			if(fails != 0) // both warnings and fails were present
+			{
 				_stringBuilder.Append(" and ");
+			}
 
 			_stringBuilder.Append(warns);
 			_stringBuilder.Append(" warning(s)");
@@ -72,10 +74,11 @@ public interface IValidatable {
 		_stringBuilder.Append(context);
 		_stringBuilder.Append(": ");
 
-		if(fails != 0)
+		if(fails != 0) {
 			logger.LogError(_stringBuilder);
-		else
+		} else {
 			logger.LogWarning(_stringBuilder);
+		}
 
 		foreach(ValidationResult result in results) {
 			switch(result.Status) {

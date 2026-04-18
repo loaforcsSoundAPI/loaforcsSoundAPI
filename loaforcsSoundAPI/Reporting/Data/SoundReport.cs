@@ -12,9 +12,9 @@ public class SoundReport {
 		public string MatchString { get; private set; } = matchString;
 		public string Caller { get; private set; } = caller;
 		public bool IsPlayOnAwake { get; private set; } = isPlayOnAwake;
-		
+
 		public override bool Equals(object obj) {
-			if (obj is not PlayedSound other) return false;
+			if(obj is not PlayedSound other) return false;
 			return Equals(other);
 		}
 
@@ -30,12 +30,12 @@ public class SoundReport {
 			return $"Match String: {MatchString}, Caller: {Caller}, IsPlayOnAwake: {IsPlayOnAwake}";
 		}
 	}
-	
+
 	public DateTime StartedAt { get; private set; } = DateTime.Now;
 
-	public List<PlayedSound> PlayedSounds { get; private set; } = [];
-    
-	public List<string> SoundPackNames { get; private set; } = [];
+	public List<PlayedSound> PlayedSounds { get; private set; } = [ ];
+
+	public List<string> SoundPackNames { get; private set; } = [ ];
 
 	public int AudioClipsLoaded { get; set; }
 }

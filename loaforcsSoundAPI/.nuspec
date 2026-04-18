@@ -3,7 +3,7 @@
     <metadata>
         <id>LoafOrc.SoundAPI</id>
         <projectUrl>https://github.com/LoafOrc/loaforcsSoundAPI</projectUrl>
-        <repository type="git" url="https://github.com/LoafOrc/loaforcsSoundAPI" />
+        <repository type="git" url="https://github.com/LoafOrc/loaforcsSoundAPI"/>
         <authors>loaforc</authors>
         <description>A library for users to replace sounds in BepInEx Unity games.</description>
     </metadata>

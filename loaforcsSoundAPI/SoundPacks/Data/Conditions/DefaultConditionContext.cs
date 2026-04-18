@@ -6,7 +6,7 @@
 public interface IContext;
 
 class DefaultConditionContext : IContext {
-    DefaultConditionContext() { }
+	DefaultConditionContext() { }
 
-    internal static readonly DefaultConditionContext DEFAULT = new();
+	internal static readonly DefaultConditionContext DEFAULT = new DefaultConditionContext();
 }

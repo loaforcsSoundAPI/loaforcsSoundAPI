@@ -9,15 +9,16 @@ namespace loaforcsSoundAPI.Core;
 
 // todo: redo all of this lmao
 class SoundAPIAudioManager : MonoBehaviour {
-	internal static readonly Dictionary<AudioSource, AudioSourceAdditionalData> audioSourceData = [];
-	internal static readonly List<AudioSourceAdditionalData> liveAudioSourceData = []; // this is a list of audio source additonal data's that should have their .Update() called
+	internal static readonly Dictionary<AudioSource, AudioSourceAdditionalData> audioSourceData = [ ];
+	internal static readonly List<AudioSourceAdditionalData> liveAudioSourceData = [ ]; // this is a list of audio source additonal data's that should have their .Update() called
 
 	static SoundAPIAudioManager Instance;
 
 	void Awake() {
 		SceneManager.sceneLoaded += (_, _) => {
-			if(!Instance)
+			if(!Instance) {
 				SpawnManager();
+			}
 		};
 	}
 

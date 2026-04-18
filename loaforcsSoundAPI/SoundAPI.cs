@@ -68,7 +68,7 @@ public static class SoundAPI {
 					continue;
 				}
 
-				ConstructorInfo info = type.GetConstructor([]);
+				ConstructorInfo info = type.GetConstructor([ ]);
 				if(info == null) {
 					loaforcsSoundAPI.Logger.LogError(
 						$"Condition: '{type.FullName}' has no valid constructor! It must have a constructor with no parameters! " +
@@ -86,7 +86,7 @@ public static class SoundAPI {
 						}
 					}
 
-					return (Condition)info.Invoke([]);
+					return (Condition) info.Invoke([ ]);
 				});
 			}
 		}

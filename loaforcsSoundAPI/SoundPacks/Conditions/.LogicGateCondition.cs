@@ -17,19 +17,21 @@ public abstract class LogicGateCondition : Condition {
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {
-		if(Conditions.Length == 0)
+		if(Conditions.Length == 0) {
 			return [
 				new IValidatable.ValidationResult(IValidatable.ResultType.WARN, ValidateWarnMessage)
 			];
+		}
 
-		return [];
+		return [ ];
 	}
 
 	protected static bool And(Condition[] conditions, IContext context) {
 		foreach(Condition condition in conditions) {
 			if(condition is InvalidCondition) return false;
-			if(!condition.Evaluate(context))
+			if(!condition.Evaluate(context)) {
 				return false; // short-cut
+			}
 		}
 
 		return true;
@@ -38,8 +40,9 @@ public abstract class LogicGateCondition : Condition {
 	protected static bool Or(Condition[] conditions, IContext context) {
 		foreach(Condition condition in conditions) {
 			if(condition is InvalidCondition) return false;
-			if(condition.Evaluate(context))
+			if(condition.Evaluate(context)) {
 				return true; // short-cut
+			}
 		}
 
 		return false;

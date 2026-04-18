@@ -14,20 +14,20 @@ public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData
 		Pack = pack;
 		pack.ReplacementCollections.Add(this);
 	}
-	
+
 	internal void AddSoundReplacementGroup(SoundReplacementGroup group) {
 		Replacements.Add(group);
 	}
 
-	[field:NonSerialized]
+	[field: NonSerialized]
 	public override SoundPack Pack { get; set; }
-	
+
 	public bool UpdateEveryFrame { get; private set; }
-    
-    
-    public bool Synced { get; private set; }
-    
-	public List<SoundReplacementGroup> Replacements { get; private set; } = [];
+
+
+	public bool Synced { get; private set; }
+
+	public List<SoundReplacementGroup> Replacements { get; private set; } = [ ];
 
 
 	public string FilePath { get; set; }

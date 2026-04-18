@@ -15,8 +15,7 @@ namespace loaforcsSoundAPI.SoundPacks.Data;
 public class SoundPack : IValidatable {
 	// this is very icky because really this should not be referencing newtonsoft json in any way but i could not care less at the moment
 	[JsonConstructor]
-	internal SoundPack() {
-	}
+	internal SoundPack() { }
 
 	[JsonProperty]
 	Dictionary<string, JObject> config { get; set; } // handled by json seralization 
@@ -36,10 +35,10 @@ public class SoundPack : IValidatable {
 
 			switch(defaultValue.Type) {
 				case JTokenType.Boolean:
-					_configData[pair.Key] = file.Bind(configSection, configName, (bool)defaultValue, description).Value;
+					_configData[pair.Key] = file.Bind(configSection, configName, (bool) defaultValue, description).Value;
 					break;
 				case JTokenType.String:
-					_configData[pair.Key] = file.Bind(configSection, configName, (string)defaultValue, description).Value;
+					_configData[pair.Key] = file.Bind(configSection, configName, (string) defaultValue, description).Value;
 					break;
 				default:
 					throw new NotImplementedException("WHAT");
@@ -61,10 +60,10 @@ public class SoundPack : IValidatable {
 	public string PackFolder { get; internal set; } // has to be internal as it is set not from a json property but elsewhere, kinda icky
 
 	[field: NonSerialized]
-	public List<SoundReplacementCollection> ReplacementCollections { get; private set; } = [];
+	public List<SoundReplacementCollection> ReplacementCollections { get; private set; } = [ ];
 
 	[field: NonSerialized]
-	readonly Dictionary<string, object> _configData = [];
+	readonly Dictionary<string, object> _configData = [ ];
 
 	ManualLogSource _logger;
 
@@ -84,7 +83,7 @@ public class SoundPack : IValidatable {
 
 	/// <inheritdoc />
 	public List<IValidatable.ValidationResult> Validate() {
-		List<IValidatable.ValidationResult> results = [];
+		List<IValidatable.ValidationResult> results = [ ];
 
 		if(string.IsNullOrEmpty(Name)) {
 			results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, "'name' can not be missing or empty!"));

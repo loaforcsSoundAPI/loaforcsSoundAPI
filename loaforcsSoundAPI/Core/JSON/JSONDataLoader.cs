@@ -18,7 +18,7 @@ namespace loaforcsSoundAPI.Core.JSON;
 /// Handles SoundAPI's JSON loading operations.
 /// </summary>
 public static class JSONDataLoader {
-	static readonly JsonSerializerSettings _settings = new() {
+	static readonly JsonSerializerSettings _settings = new JsonSerializerSettings {
 		ContractResolver = new IncludePrivatePropertiesContractResolver(),
 		Converters = [
 			new MatchesJSONConverter(),
@@ -37,45 +37,45 @@ public static class JSONDataLoader {
 		try {
 			T result = JsonConvert.DeserializeObject<T>(input, _settings);
 
-			if (result is IFilePathAware dataFile) {
+			if(result is IFilePathAware dataFile) {
 				dataFile.FilePath = path;
 			}
 
-			if (result is Conditional conditional && conditional.Condition != null) {
+			if(result is Conditional conditional && conditional.Condition != null) {
 				conditional.Condition.Parent = conditional;
 				conditional.Condition.OnRegistered();
 			}
-            
+
 			return result;
-		} catch (JsonReaderException exception) {
+		} catch(JsonReaderException exception) {
 			loaforcsSoundAPI.Logger.LogError($"Failed to read json file: 'plugins{Path.DirectorySeparatorChar}{Path.GetRelativePath(Paths.PluginPath, path)}'");
 			loaforcsSoundAPI.Logger.LogError(exception.Message);
 
 			// handle showing context around the error.
 			string[] lines = input.Split("\n");
-			
+
 			int minLeadingSpaces = int.MaxValue;
 
 			// Count leading spaces
-			for (int i = Mathf.Max(0, exception.LineNumber - 3); i < Mathf.Min(lines.Length, exception.LineNumber + 3); i++) {
+			for(int i = Mathf.Max(0, exception.LineNumber - 3); i < Mathf.Min(lines.Length, exception.LineNumber + 3); i++) {
 				int leadingSpaces = lines[i].TakeWhile(char.IsWhiteSpace).Count();
 				minLeadingSpaces = Mathf.Min(minLeadingSpaces, leadingSpaces);
 			}
-            
-			for (int i = Mathf.Max(0, exception.LineNumber - 3); i < Mathf.Min(lines.Length, exception.LineNumber + 3); i++) {
+
+			for(int i = Mathf.Max(0, exception.LineNumber - 3); i < Mathf.Min(lines.Length, exception.LineNumber + 3); i++) {
 				string lineContent = $"{(i + 1).ToString(),-5}|  " + lines[i][Mathf.Min(lines[i].Length, minLeadingSpaces)..].TrimEnd();
-				
-				if (i + 1 == exception.LineNumber) {
+
+				if(i + 1 == exception.LineNumber) {
 					lineContent += " // <- HERE";
 				}
-				
+
 				loaforcsSoundAPI.Logger.LogError(lineContent);
 			}
 		}
 
 		return default;
 	}
-	
+
 	class MatchesJSONConverter : JsonConverter {
 		public override bool CanConvert(Type objectType) {
 			return objectType == typeof(List<string>);
@@ -83,7 +83,7 @@ public static class JSONDataLoader {
 
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
 			JToken token = JToken.Load(reader);
-			if (token.Type == JTokenType.Array) {
+			if(token.Type == JTokenType.Array) {
 				return token.ToObject<List<string>>();
 			}
 
@@ -94,23 +94,23 @@ public static class JSONDataLoader {
 			serializer.Serialize(writer, value);
 		}
 	}
-	
+
 	class IncludePrivatePropertiesContractResolver : DefaultContractResolver {
 		internal IncludePrivatePropertiesContractResolver() {
 			NamingStrategy = new SnakeCaseNamingStrategy();
 		}
-		
+
 		protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization) {
 			JsonProperty property = base.CreateProperty(member, memberSerialization);
- 
-			if (!property.Writable && member is PropertyInfo propInfo) {
+
+			if(!property.Writable && member is PropertyInfo propInfo) {
 				property.Writable = propInfo.GetSetMethod(true) != null;
 			}
 
 			return property;
 		}
 	}
-	
+
 	class ConditionConverter : JsonConverter<Condition> {
 		public override Condition ReadJson(JsonReader reader, Type objectType, Condition existingValue, bool hasExistingValue, JsonSerializer serializer) {
 			// load the json object
@@ -119,20 +119,18 @@ public static class JSONDataLoader {
 			// get the "type" field to determine which condition class to use
 			string conditionType = jsonObject["type"]?.ToString();
 
-			if (string.IsNullOrEmpty(conditionType)) return new InvalidCondition(null);
-			
+			if(string.IsNullOrEmpty(conditionType)) return new InvalidCondition(null);
+
 			Condition condition = SoundPackDataHandler.CreateCondition(conditionType);
-			if (condition == null) return null;
-			
+			if(condition == null) return null;
+
 			serializer.Populate(jsonObject.CreateReader(), condition);
 
-			if (condition.Constant == true) {
-				return 
-					condition.Evaluate(DefaultConditionContext.DEFAULT) ? 
-					ConstantCondition.TRUE : 
-					ConstantCondition.FALSE;
+			if(condition.Constant == true) {
+				return
+					condition.Evaluate(DefaultConditionContext.DEFAULT) ? ConstantCondition.TRUE : ConstantCondition.FALSE;
 			}
-			
+
 			return condition;
 		}
 

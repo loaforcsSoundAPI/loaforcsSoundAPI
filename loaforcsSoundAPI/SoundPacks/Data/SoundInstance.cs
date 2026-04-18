@@ -20,22 +20,22 @@ public class SoundInstance : Conditional {
 		parent.AddSoundReplacement(this);
 	}
 
-	[field:NonSerialized]
+	[field: NonSerialized]
 	public SoundReplacementGroup Parent { get; internal set; }
-    
+
 	public string Sound { get; private set; }
-	
+
 	public int Weight { get; private set; }
-	
-	[field:NonSerialized]
+
+	[field: NonSerialized]
 	public AudioClip Clip { get; internal set; }
 
 	public override List<IValidatable.ValidationResult> Validate() {
 		List<IValidatable.ValidationResult> results = base.Validate();
-		
-		if (!File.Exists(Path.Combine(Pack.PackFolder, "sounds", Sound))) {
+
+		if(!File.Exists(Path.Combine(Pack.PackFolder, "sounds", Sound))) {
 			results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Sound '{Sound}' couldn't be found or doesn't exist!"));
-		} else if (!SoundPackLoadPipeline.audioExtensions.ContainsKey(Path.GetExtension(Sound))) {
+		} else if(!SoundPackLoadPipeline.audioExtensions.ContainsKey(Path.GetExtension(Sound))) {
 			results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Audio type: '{Path.GetExtension(Sound)}' is not supported!"));
 		}
 
@@ -45,7 +45,7 @@ public class SoundInstance : Conditional {
 	public override SoundPack Pack {
 		get => Parent.Pack;
 		set {
-			if (Parent.Pack != null) throw new InvalidOperationException("Pack has already been set.");
+			if(Parent.Pack != null) throw new InvalidOperationException("Pack has already been set.");
 			Parent.Pack = value;
 		}
 	}
