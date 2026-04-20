@@ -9,8 +9,9 @@ namespace loaforcsSoundAPI.Core.Patches.Harmony;
 static class HarmonyBackend {
 	internal static void Init(HarmonyLib.Harmony harmony) {
 		harmony.PatchAll(typeof(HarmonyBackend));
+		//harmony.Patch(AccessTools.Method(typeof(AudioSource), nameof(AudioSource.Play)), new HarmonyMethod(AccessTools.Method(typeof(HarmonyBackend), nameof(AudioSource.Play))));
 		UnityObjectPatch.Init(harmony);
-
+	
 		SceneManager.sceneLoaded += (scene, _) => {
 			// run goofy loop on everything
 			SoundAPIAudioManager.RunCleanup();
@@ -33,11 +34,11 @@ static class HarmonyBackend {
 	}
 
 	[HarmonyPrefix]
-	[HarmonyPatch(typeof(AudioSource))]
-	[HarmonyPatch(nameof(AudioSource.Play), [ ])]
-	[HarmonyPatch(nameof(AudioSource.Play), typeof(ulong))]
-	[HarmonyPatch(nameof(AudioSource.Play), typeof(double))]
-	static bool Play(AudioSource __instance) {
+	[HarmonyPatch(typeof(AudioSource), nameof(AudioSource.Play), [ ])]
+	[HarmonyPatch(typeof(AudioSource), nameof(AudioSource.Play), typeof(ulong))]
+	[HarmonyPatch(typeof(AudioSource), nameof(AudioSource.Play), typeof(double))]
+	public static bool Play(AudioSource __instance) {
+		Debuggers.SoundReplacementHandler?.Log("HarmonyX Backend: AudioSource.Play patch");
 		AudioSourceAdditionalData data = AudioSourceAdditionalData.GetOrCreate(__instance);
 
 		if(SoundReplacementHandler.TryReplaceAudio(__instance, data.OriginalClip, out AudioClip replacement)) {
