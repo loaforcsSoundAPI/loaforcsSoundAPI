@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace loaforcsSoundAPI.SoundPacks.Data;
 
-public class SoundInstance : Conditional {
+public class SoundInstance : Conditional, IValidatable {
 	[JsonConstructor]
 	internal SoundInstance() { }
 

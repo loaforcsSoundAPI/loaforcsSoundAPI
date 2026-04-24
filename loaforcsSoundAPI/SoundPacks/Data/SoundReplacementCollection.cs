@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace loaforcsSoundAPI.SoundPacks.Data;
 
-public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData, IRegistrationCallback {
+public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData, IRegistrationCallback, IValidatable {
 	[JsonConstructor]
 	internal SoundReplacementCollection() { }
 
@@ -38,5 +38,16 @@ public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData
 		foreach(SoundReplacementGroup group in Replacements) {
 			group.OnRegistered();
 		}
+	}
+
+	public override List<IValidatable.ValidationResult> Validate() {
+		List<IValidatable.ValidationResult> results = base.Validate();
+
+		foreach(SoundReplacementGroup group in Replacements) {
+			group.Parent = this; // !!! - Setting data while doing validation. If this ever breaks it's here!
+			results.AddRange(group.Validate());
+		}
+
+		return results;
 	}
 }

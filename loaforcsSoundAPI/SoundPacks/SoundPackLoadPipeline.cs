@@ -28,7 +28,7 @@ static class SoundPackLoadPipeline {
 
 	// todo: maybe remove
 	internal static event Action OnFinishedPipeline = delegate { };
-	static Dictionary<string, List<string>> mappings = [ ];
+	internal static Dictionary<string, List<string>> mappings = [ ];
 
 	// todo: probably change this to be else where? soundinstance needs this for validation.
 	internal static Dictionary<string, AudioType> audioExtensions = new Dictionary<string, AudioType> {
@@ -268,53 +268,6 @@ static class SoundPackLoadPipeline {
 			pack.ReplacementCollections.Add(collection);
 
 			if(!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", collection.Validate(), pack.Logger)) continue;
-
-			List<IValidatable.ValidationResult> groupValidations = [ ];
-			// not the cleanest
-			foreach(SoundReplacementGroup replacementGroup in collection.Replacements) {
-				replacementGroup.Parent = collection; // !!! - Setting data while doing validation. If this ever breaks it's here!
-
-				// validate match strings
-				List<IValidatable.ValidationResult> validationResults = replacementGroup.Validate();
-
-				// Convert mappings
-				foreach(string match in replacementGroup.Matches.ToList()) { // .ToList to avoid list exception or whatever
-					if(!match.StartsWith("#")) continue;
-
-					replacementGroup.Matches.Remove(match);
-
-					if(mappings.TryGetValue(match[1..], out List<string> mappedStrings)) {
-						replacementGroup.Matches.AddRange(mappedStrings);
-					} else {
-						validationResults.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Mapping: '{match}' has not been found. If it's part of a soft dependency, make sure to use a 'mod_installed' condition with 'constant' enabled."));
-					}
-				}
-
-				if(validationResults.Count != 0) {
-					groupValidations.AddRange(validationResults);
-					continue;
-				}
-
-				// validate sounds exist.
-				foreach(SoundInstance sound in replacementGroup.Sounds) {
-					sound.Parent = replacementGroup; // !!! - Setting data while doing validation. If this ever breaks it's here!
-					validationResults.AddRange(sound.Validate());
-				}
-
-				if(validationResults.Count != 0) {
-					groupValidations.AddRange(validationResults);
-					continue;
-				}
-
-
-				// Imply "*:object:clip" from "object:clip"
-				List<string> corrected = replacementGroup.Matches.Select(match => match.Split(":").Length == 2 ? $"*:{match}" : match).ToList();
-
-				replacementGroup.Matches.Clear();
-				replacementGroup.Matches.AddRange(corrected);
-			}
-
-			if(!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", groupValidations, pack.Logger)) continue;
 
 			collections.Add(collection);
 		}

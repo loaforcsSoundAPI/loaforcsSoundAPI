@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace loaforcsSoundAPI.SoundPacks.Data;
 
-public class SoundReplacementGroup : Conditional {
+public class SoundReplacementGroup : Conditional, IValidatable {
 	[JsonConstructor]
 	internal SoundReplacementGroup() { }
 
@@ -37,15 +37,31 @@ public class SoundReplacementGroup : Conditional {
 		foreach(SoundInstance sound in Sounds) {
 			sound.OnRegistered();
 		}
+
+		// Imply "*:object:clip" from "object:clip"
+		List<string> corrected = Matches.Select(match => match.Split(":").Length == 2 ? $"*:{match}" : match).ToList();
+
+		Matches.Clear();
+		Matches.AddRange(corrected);
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {
 		List<IValidatable.ValidationResult> results = base.Validate();
 
-		foreach(string match in Matches) {
+		foreach(string match in Matches.ToList()) {
 			if(string.IsNullOrEmpty(match)) {
 				results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, "Match string can not be empty!"));
 				continue;
+			}
+
+			if(match.StartsWith("#")) {
+				Matches.Remove(match);
+
+				if(SoundPackLoadPipeline.mappings.TryGetValue(match[1..], out List<string> mappedStrings)) {
+					Matches.AddRange(mappedStrings);
+				} else {
+					results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.FAIL, $"Mapping: '{match}' has not been found. If it's part of a soft dependency, make sure to use a 'mod_installed' condition with 'constant' enabled."));
+				}
 			}
 
 			string[] processed = match.Split(":");
@@ -58,6 +74,11 @@ public class SoundReplacementGroup : Conditional {
 			if(processed.Length > 3) {
 				results.Add(new IValidatable.ValidationResult(IValidatable.ResultType.WARN, $"'{match}' has more than 3 parts! SoundAPI will handle this as '{match[0]}:{match[1]}:{match[2]}', discarding the rest!"));
 			}
+		}
+
+		foreach(SoundInstance sound in Sounds) {
+			sound.Parent = this; // !!! - Setting data while doing validation. If this ever breaks it's here!
+			results.AddRange(sound.Validate());
 		}
 
 		return results;
