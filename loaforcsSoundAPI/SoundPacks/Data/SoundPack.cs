@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -12,7 +13,7 @@ using UnityEngine.Windows.Speech;
 
 namespace loaforcsSoundAPI.SoundPacks.Data;
 
-public class SoundPack : IValidatable, IRegistrationCallback {
+public class SoundPack : IValidatable, IDeserializationCallback, IFilePathAware {
 	// this is very icky because really this should not be referencing newtonsoft json in any way but i could not care less at the moment
 	[JsonConstructor]
 	internal SoundPack() { }
@@ -57,7 +58,7 @@ public class SoundPack : IValidatable, IRegistrationCallback {
 	[CanBeNull]
 	public string Version { get; private set; }
 
-	public string PackFolder { get; internal set; } // has to be internal as it is set not from a json property but elsewhere, kinda icky
+	public string PackFolder { get; private set; } // has to be internal as it is set not from a json property but elsewhere, kinda icky
 
 	[field: NonSerialized]
 	public List<SoundReplacementCollection> ReplacementCollections { get; private set; } = [ ];
@@ -66,6 +67,9 @@ public class SoundPack : IValidatable, IRegistrationCallback {
 	readonly Dictionary<string, object> _configData = [ ];
 
 	ManualLogSource _logger;
+
+	[field: NonSerialized]
+	public Registry<SoundReplacementCollection> Replacers { get; private set; }
 
 	public ManualLogSource Logger {
 		get {
@@ -116,9 +120,10 @@ public class SoundPack : IValidatable, IRegistrationCallback {
 		return results;
 	}
 
-	public void OnRegistered() {
-		foreach(SoundReplacementCollection collection in ReplacementCollections) {
-			collection.OnRegistered();
-		}
+	public void OnDeserialized() {
+		PackFolder = Path.GetDirectoryName(FilePath);
+		Replacers = new Registry<SoundReplacementCollection>(this, "replacers");
 	}
+
+	public string FilePath { get; set; }
 }

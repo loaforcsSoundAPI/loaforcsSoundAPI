@@ -79,14 +79,12 @@ static class SoundPackLoadPipeline {
 		timer.Restart();
 
 		SkippedResults skippedStats = new SkippedResults();
-		// Step 3: Load sound replacement collections data and begin loading audio
+		// Step 3: Load registries data and begin loading audio
 		foreach(SoundPack pack in packs) {
-			List<SoundReplacementCollection> collections = LoadSoundReplacementCollections(pack, ref skippedStats);
-			loaforcsSoundAPI.Logger.LogDebug($"pack: {pack.Name} has {pack.ReplacementCollections.Count} collection(s)");
-			pack.OnRegistered();
+			pack.Replacers.Load();
 
 			// Step 4: Enter foreach hell and fire async methods to begin UWR calls to load sounds.
-			foreach(SoundReplacementCollection collection in collections) {
+			foreach(SoundReplacementCollection collection in pack.Replacers) {
 				if(collection.ShouldSkip()) {
 					skippedStats.Collections++;
 					continue;
@@ -214,7 +212,6 @@ static class SoundPackLoadPipeline {
 
 			SoundPack pack = JSONDataLoader.LoadFromFile<SoundPack>(file);
 			if(pack == null) continue; // json error
-			pack.PackFolder = Path.GetDirectoryName(file);
 
 			if(packs.TryGetValue(pack.Name, out SoundPack existingPack)) {
 				IValidatable.LogAndCheckValidationResult($"loading '{file}'", [
@@ -251,28 +248,6 @@ static class SoundPackLoadPipeline {
 
 		Debuggers.SoundReplacementLoader?.Log($"loaded '{packs.Count}' packs.");
 		return packs.Values.ToList();
-	}
-
-	static List<SoundReplacementCollection> LoadSoundReplacementCollections(SoundPack pack, ref SkippedResults skippedStats) {
-		List<SoundReplacementCollection> collections = [ ];
-		if(!Directory.Exists(Path.Combine(pack.PackFolder, "replacers"))) return collections; // purely for mods that only have mappings
-
-		Debuggers.SoundReplacementLoader?.Log($"start loading '{pack.Name}'!");
-
-		foreach(string file in Directory.GetFiles(Path.Combine(pack.PackFolder, "replacers"), "*.json", SearchOption.AllDirectories)) {
-			Debuggers.SoundReplacementLoader?.Log($"found replacer: '{file}'!");
-
-			SoundReplacementCollection collection = JSONDataLoader.LoadFromFile<SoundReplacementCollection>(file);
-			if(collection == null) continue; // json error
-			collection.Pack = pack;
-			pack.ReplacementCollections.Add(collection);
-
-			if(!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", collection.Validate(), pack.Logger)) continue;
-
-			collections.Add(collection);
-		}
-
-		return collections;
 	}
 
 	static LoadSoundOperation StartWebRequestOperation(SoundPack pack, SoundInstance sound, AudioType type) {

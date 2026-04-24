@@ -45,6 +45,10 @@ public static class JSONDataLoader {
 				conditional.Condition.Parent = conditional;
 			}
 
+			if(result is IDeserializationCallback callback) {
+				callback.OnDeserialized();
+			}
+
 			return result;
 		} catch(JsonReaderException exception) {
 			loaforcsSoundAPI.Logger.LogError($"Failed to read json file: 'plugins{Path.DirectorySeparatorChar}{Path.GetRelativePath(Paths.PluginPath, path)}'");
