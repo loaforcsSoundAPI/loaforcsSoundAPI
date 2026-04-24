@@ -109,7 +109,7 @@ public class AudioSourceAdditionalData {
 		IContext context = CurrentContext ?? DefaultConditionContext.DEFAULT;
 
 		SoundInstance sound = ReplacedWith.Sounds.FirstOrDefault(x => x.Evaluate(context));
-		if(sound == null) {
+		if(sound == null || !sound.Clip) {
 			return;
 		}
 

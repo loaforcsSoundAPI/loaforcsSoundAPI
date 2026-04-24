@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using loaforcsSoundAPI.Core.Data;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 
@@ -10,10 +11,19 @@ public abstract class LogicGateCondition : Condition {
 	protected abstract string ValidateWarnMessage { get; }
 
 	public override void OnRegistered() {
-		foreach(Condition condition in Conditions) {
+		for(int i = 0; i < Conditions.Length; i++) {
+			Condition condition = Conditions[i];
 			condition.Parent = Parent;
 			condition.OnRegistered();
+			if(ShouldBeMadeConstant(condition)) {
+				Conditions[i] = condition.Evaluate(DefaultConditionContext.DEFAULT) ? ConstantCondition.TRUE : ConstantCondition.FALSE;
+			}
 		}
+	}
+
+	/// <inheritdoc/>
+	public override bool CanBeImpliedConstant() {
+		return Conditions.All(ShouldBeMadeConstant);
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {

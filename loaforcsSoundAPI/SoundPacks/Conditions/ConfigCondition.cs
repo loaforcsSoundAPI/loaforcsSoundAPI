@@ -30,6 +30,10 @@ class ConfigCondition : Condition {
 	/// <default>defaults to `true` if bool, defaults to empty if string</default>
 	public object Value { get; private set; }
 
+	public override bool CanBeImpliedConstant() {
+		return true;
+	}
+
 	public override bool Evaluate(IContext context) {
 		if(!Pack.TryGetConfigValue(Config, out object data)) return false;
 

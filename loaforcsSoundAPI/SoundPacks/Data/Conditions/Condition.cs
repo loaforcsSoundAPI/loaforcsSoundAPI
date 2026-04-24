@@ -26,6 +26,15 @@ public abstract class Condition : IValidatable, IRegistrationCallback {
 	/// </summary>
 	public bool? Constant { get; private set; }
 
+	/// <summary>
+	/// Determines if this condition can be implied constant.
+	/// A constant condition allows sounds to skip loading, saving memory and startup time
+	/// </summary>
+	/// <returns></returns>
+	public virtual bool CanBeImpliedConstant() {
+		return false;
+	}
+
 	public virtual void OnRegistered() { }
 
 	/// <summary>
@@ -152,6 +161,11 @@ public abstract class Condition : IValidatable, IRegistrationCallback {
 
 	protected static void LogDebug(string name, object message) {
 		Debuggers.ConditionsInfo?.Log($"({name}) {message}");
+	}
+
+	public static bool ShouldBeMadeConstant(Condition condition) {
+		if(condition.Constant == true) return true;
+		return condition.CanBeImpliedConstant() && PackLoadingConfig.SkipUnusedSounds;
 	}
 }
 

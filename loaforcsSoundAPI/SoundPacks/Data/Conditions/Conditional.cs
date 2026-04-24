@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace loaforcsSoundAPI.SoundPacks.Data.Conditions;
 
 public abstract class Conditional : IValidatable, IPackData, IRegistrationCallback {
-	public Condition Condition { get; set; }
+	public Condition Condition { get; private set; }
 
 	public bool Evaluate(IContext context) {
 		if(Condition == null) return true;
@@ -26,5 +26,8 @@ public abstract class Conditional : IValidatable, IPackData, IRegistrationCallba
 
 	public void OnRegistered() {
 		Condition.OnRegistered();
+		if(Condition.ShouldBeMadeConstant(Condition)) {
+			Condition = Condition.Evaluate(DefaultConditionContext.DEFAULT) ? ConstantCondition.TRUE : ConstantCondition.FALSE;
+		}
 	}
 }
