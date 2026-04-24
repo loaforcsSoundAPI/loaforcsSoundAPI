@@ -33,7 +33,12 @@ public abstract class LogicGateCondition : Condition {
 			];
 		}
 
-		return [ ];
+		List<IValidatable.ValidationResult> results = [ ];
+		foreach(Condition condition in Conditions) {
+			results.AddRange(condition.Validate());
+		}
+
+		return results;
 	}
 
 	protected static bool And(Condition[] conditions, IContext context) {
