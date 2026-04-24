@@ -82,6 +82,8 @@ static class SoundPackLoadPipeline {
 		// Step 3: Load sound replacement collections data and begin loading audio
 		foreach(SoundPack pack in packs) {
 			// Step 4: Enter foreach hell and fire async methods to begin UWR calls to load sounds.
+			pack.OnRegistered();
+
 			foreach(SoundReplacementCollection collection in LoadSoundReplacementCollections(pack, ref skippedStats)) {
 				foreach(SoundReplacementGroup replacementGroup in collection.Replacements) {
 					SoundPackDataHandler.AddReplacement(replacementGroup);
@@ -184,14 +186,6 @@ static class SoundPackLoadPipeline {
 		}
 
 		#endregion
-
-		// Step 7: Fire on registered events
-		timer.Restart();
-		foreach(SoundPack pack in packs) {
-			pack.OnRegistered();
-		}	
-
-		loaforcsSoundAPI.Logger.LogInfo($"(Step 7) Firing .OnRegistered events took {timer.ElapsedMilliseconds}ms");
 
 		// Step 8: Fire event and final cleanup
 		OnFinishedPipeline();
