@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using loaforcsSoundAPI.Core.Data;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 using Newtonsoft.Json;
@@ -32,7 +33,8 @@ public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData
 
 	public string FilePath { get; set; }
 
-	public void OnRegistered() {
+	public override void OnRegistered() {
+		base.OnRegistered();
 		foreach(SoundReplacementGroup group in Replacements) {
 			group.OnRegistered();
 		}

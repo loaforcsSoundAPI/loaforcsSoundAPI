@@ -24,10 +24,19 @@ public abstract class Conditional : IValidatable, IPackData, IRegistrationCallba
 
 	public abstract SoundPack Pack { get; set; }
 
-	public void OnRegistered() {
+	public virtual void OnRegistered() {
+		if(Condition == null) return;
 		Condition.OnRegistered();
 		if(Condition.ShouldBeMadeConstant(Condition)) {
 			Condition = Condition.Evaluate(DefaultConditionContext.DEFAULT) ? ConstantCondition.TRUE : ConstantCondition.FALSE;
 		}
+	}
+
+	internal bool ShouldSkip() {
+		if(Condition is ConstantCondition constant) {
+			return constant.Value;
+		}
+
+		return false;
 	}
 }

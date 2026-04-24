@@ -81,17 +81,28 @@ static class SoundPackLoadPipeline {
 		SkippedResults skippedStats = new SkippedResults();
 		// Step 3: Load sound replacement collections data and begin loading audio
 		foreach(SoundPack pack in packs) {
-			// Step 4: Enter foreach hell and fire async methods to begin UWR calls to load sounds.
+			List<SoundReplacementCollection> collections = LoadSoundReplacementCollections(pack, ref skippedStats);
+			loaforcsSoundAPI.Logger.LogDebug($"pack: {pack.Name} has {pack.ReplacementCollections.Count} collection(s)");
 			pack.OnRegistered();
 
-			foreach(SoundReplacementCollection collection in LoadSoundReplacementCollections(pack, ref skippedStats)) {
+			// Step 4: Enter foreach hell and fire async methods to begin UWR calls to load sounds.
+			foreach(SoundReplacementCollection collection in collections) {
+				if(collection.ShouldSkip()) {
+					skippedStats.Collections++;
+					continue;
+				}
+
 				foreach(SoundReplacementGroup replacementGroup in collection.Replacements) {
+					if(replacementGroup.ShouldSkip()) {
+						skippedStats.Groups++;
+						continue;
+					}
+
 					SoundPackDataHandler.AddReplacement(replacementGroup);
 
 					// finally actually load sounds!
 					foreach(SoundInstance soundReplacement in replacementGroup.Sounds) {
-						if(soundReplacement.Condition is ConstantCondition constant && constant.Value == false) {
-							Debuggers.SoundReplacementLoader?.Log($"skipping a sound in '{LogFormats.FormatFilePath(collection.FilePath)}' because sound is marked as constant and has a value of false.");
+						if(soundReplacement.ShouldSkip()) {
 							skippedStats.Sounds++;
 							continue;
 						}
@@ -254,12 +265,7 @@ static class SoundPackLoadPipeline {
 			SoundReplacementCollection collection = JSONDataLoader.LoadFromFile<SoundReplacementCollection>(file);
 			if(collection == null) continue; // json error
 			collection.Pack = pack;
-
-			if(collection.Condition is ConstantCondition constant && constant.Value == false) {
-				Debuggers.SoundReplacementLoader?.Log($"skipping '{LogFormats.FormatFilePath(collection.FilePath)}' because collection is marked as constant and has a value of false.");
-				skippedStats.Collections++;
-				continue;
-			}
+			pack.ReplacementCollections.Add(collection);
 
 			if(!IValidatable.LogAndCheckValidationResult($"loading '{LogFormats.FormatFilePath(file)}'", collection.Validate(), pack.Logger)) continue;
 
@@ -267,12 +273,6 @@ static class SoundPackLoadPipeline {
 			// not the cleanest
 			foreach(SoundReplacementGroup replacementGroup in collection.Replacements) {
 				replacementGroup.Parent = collection; // !!! - Setting data while doing validation. If this ever breaks it's here!
-
-				if(replacementGroup.Condition is ConstantCondition constantGroup && constantGroup.Value == false) {
-					Debuggers.SoundReplacementLoader?.Log($"skipping a replacement in '{LogFormats.FormatFilePath(collection.FilePath)}' because group is marked as constant and has a value of false.");
-					skippedStats.Groups++;
-					continue;
-				}
 
 				// validate match strings
 				List<IValidatable.ValidationResult> validationResults = replacementGroup.Validate();
