@@ -43,7 +43,6 @@ public static class JSONDataLoader {
 
 			if(result is Conditional conditional && conditional.Condition != null) {
 				conditional.Condition.Parent = conditional;
-				conditional.Condition.OnRegistered();
 			}
 
 			return result;

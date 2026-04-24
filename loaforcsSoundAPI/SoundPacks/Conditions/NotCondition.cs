@@ -22,7 +22,7 @@ class NotCondition : Condition {
 	/// <value><see cref="Condition"/></value>
 	public Condition Condition { get; private set; }
 
-	protected internal override void OnRegistered() {
+	public override void OnRegistered() {
 		if(Condition != null) {
 			Condition.Parent = Parent;
 			Condition.OnRegistered();

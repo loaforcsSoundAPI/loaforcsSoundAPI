@@ -10,7 +10,7 @@ namespace loaforcsSoundAPI.SoundPacks.Data.Conditions;
 /// </summary>
 /// <seealso cref="Condition{ContextType}"/>
 /// <seealso cref="IContext"/>
-public abstract class Condition : IValidatable {
+public abstract class Condition : IValidatable, IRegistrationCallback {
 	[field: NonSerialized]
 	public Conditional Parent { get; internal set; }
 
@@ -26,7 +26,7 @@ public abstract class Condition : IValidatable {
 	/// </summary>
 	public bool? Constant { get; private set; }
 
-	protected internal virtual void OnRegistered() { }
+	public virtual void OnRegistered() { }
 
 	/// <summary>
 	/// Evaluate Condition

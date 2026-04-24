@@ -12,7 +12,7 @@ using UnityEngine.Windows.Speech;
 
 namespace loaforcsSoundAPI.SoundPacks.Data;
 
-public class SoundPack : IValidatable {
+public class SoundPack : IValidatable, IRegistrationCallback {
 	// this is very icky because really this should not be referencing newtonsoft json in any way but i could not care less at the moment
 	[JsonConstructor]
 	internal SoundPack() { }
@@ -114,5 +114,11 @@ public class SoundPack : IValidatable {
 		}
 
 		return results;
+	}
+
+	public void OnRegistered() {
+		foreach(SoundReplacementCollection collection in ReplacementCollections) {
+			collection.OnRegistered();
+		}
 	}
 }

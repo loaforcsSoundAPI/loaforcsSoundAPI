@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace loaforcsSoundAPI.SoundPacks.Data;
 
-public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData {
+public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData, IRegistrationCallback {
 	[JsonConstructor]
 	internal SoundReplacementCollection() { }
 
@@ -31,4 +31,10 @@ public class SoundReplacementCollection : Conditional, IFilePathAware, IPackData
 
 
 	public string FilePath { get; set; }
+
+	public void OnRegistered() {
+		foreach(SoundReplacementGroup group in Replacements) {
+			group.OnRegistered();
+		}
+	}
 }

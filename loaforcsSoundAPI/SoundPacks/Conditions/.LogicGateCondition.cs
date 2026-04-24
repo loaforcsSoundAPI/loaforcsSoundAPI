@@ -9,7 +9,7 @@ public abstract class LogicGateCondition : Condition {
 
 	protected abstract string ValidateWarnMessage { get; }
 
-	protected internal override void OnRegistered() {
+	public override void OnRegistered() {
 		foreach(Condition condition in Conditions) {
 			condition.Parent = Parent;
 			condition.OnRegistered();

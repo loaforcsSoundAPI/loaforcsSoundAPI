@@ -185,7 +185,15 @@ static class SoundPackLoadPipeline {
 
 		#endregion
 
-		// Step 7: Fire event and final cleanup
+		// Step 7: Fire on registered events
+		timer.Restart();
+		foreach(SoundPack pack in packs) {
+			pack.OnRegistered();
+		}	
+
+		loaforcsSoundAPI.Logger.LogInfo($"(Step 7) Firing .OnRegistered events took {timer.ElapsedMilliseconds}ms");
+
+		// Step 8: Fire event and final cleanup
 		OnFinishedPipeline();
 		mappings = null;
 
