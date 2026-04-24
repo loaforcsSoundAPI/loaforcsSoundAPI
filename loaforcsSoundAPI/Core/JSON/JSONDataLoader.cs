@@ -121,7 +121,7 @@ public static class JSONDataLoader {
 			}
 
 			if(token.Type == JTokenType.Object) {
-				JObject jsonObject = JObject.Load(reader);
+				JObject jsonObject = (JObject) token;
 
 				// get the "type" field to determine which condition class to use
 				string conditionType = jsonObject["type"]?.ToString();
