@@ -47,11 +47,6 @@ public class SoundPack : IValidatable, IDeserializationCallback, IFilePathAware 
 		}
 	}
 
-	public SoundPack(string name, string packFolder) {
-		Name = name;
-		PackFolder = packFolder;
-	}
-
 	public string Name { get; private set; }
 	public string GUID => $"soundpack.{Name}"; // todo: probably figure out a better way to do this.
 

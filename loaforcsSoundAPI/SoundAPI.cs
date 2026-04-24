@@ -115,24 +115,6 @@ public static class SoundAPI {
 	}
 
 	/// <summary>
-	/// Registers a Sound-pack for use by SoundAPI.
-	/// </summary>
-	/// <param name="pack">Pack to register</param>
-	/// <exception cref="InvalidOperationException">Sound-pack is already registered.</exception>
-	public static void RegisterSoundPack(SoundPack pack) {
-		if(SoundPackDataHandler.LoadedPacks.Contains(pack)) {
-			throw new InvalidOperationException($"Already registered sound-pack: '{pack.Name}'!");
-		}
-
-		SoundPackDataHandler.AddLoadedPack(pack);
-		foreach(SoundReplacementCollection collection in pack.ReplacementCollections) {
-			foreach(SoundReplacementGroup group in collection.Replacements) {
-				SoundPackDataHandler.AddReplacement(group);
-			}
-		}
-	}
-
-	/// <summary>
 	/// Creates an exact copy of an audio source onto another game object.
 	/// </summary>
 	/// <param name="source">The source to be copied</param>
