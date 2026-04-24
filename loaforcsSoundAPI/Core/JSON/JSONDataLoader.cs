@@ -113,25 +113,32 @@ public static class JSONDataLoader {
 
 	class ConditionConverter : JsonConverter<Condition> {
 		public override Condition ReadJson(JsonReader reader, Type objectType, Condition existingValue, bool hasExistingValue, JsonSerializer serializer) {
-			// load the json object
-			JObject jsonObject = JObject.Load(reader);
+			// first read a JToken to determine if its a boolean or a condition
+			JToken token = JToken.Load(reader);
 
-			// get the "type" field to determine which condition class to use
-			string conditionType = jsonObject["type"]?.ToString();
-
-			if(string.IsNullOrEmpty(conditionType)) return new InvalidCondition(null);
-
-			Condition condition = SoundPackDataHandler.CreateCondition(conditionType);
-			if(condition == null) return null;
-
-			serializer.Populate(jsonObject.CreateReader(), condition);
-
-			if(condition.Constant == true) {
-				return
-					condition.Evaluate(DefaultConditionContext.DEFAULT) ? ConstantCondition.TRUE : ConstantCondition.FALSE;
+			if(token.Type == JTokenType.Boolean) {
+				bool value = token.Value<bool>();
+				return value ? ConstantCondition.TRUE : ConstantCondition.FALSE;
 			}
 
-			return condition;
+			if(token.Type == JTokenType.Object) {
+				JObject jsonObject = JObject.Load(reader);
+
+				// get the "type" field to determine which condition class to use
+				string conditionType = jsonObject["type"]?.ToString();
+
+				if(string.IsNullOrEmpty(conditionType)) return new InvalidCondition(null);
+
+				Condition condition = SoundPackDataHandler.CreateCondition(conditionType);
+				if(condition == null) return null;
+
+				serializer.Populate(jsonObject.CreateReader(), condition);
+
+				return condition;
+			}
+
+			IJsonLineInfo? lineInfo = reader as IJsonLineInfo;
+			throw new JsonReaderException($"{token} is not valid for a condition", reader.Path, lineInfo?.LineNumber ?? 0, lineInfo?.LinePosition ?? 0, null);
 		}
 
 		public override void WriteJson(JsonWriter writer, Condition value, JsonSerializer serializer) {
