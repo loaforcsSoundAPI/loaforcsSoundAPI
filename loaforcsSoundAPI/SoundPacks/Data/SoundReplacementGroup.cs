@@ -5,6 +5,7 @@ using loaforcsSoundAPI.Core.Data;
 using loaforcsSoundAPI.SoundPacks.AudioClipLoading;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 using Newtonsoft.Json;
+using Object = UnityEngine.Object;
 
 namespace loaforcsSoundAPI.SoundPacks.Data;
 
@@ -54,6 +55,12 @@ public class SoundReplacementGroup : Conditional, IValidatable {
 			}
 
 			audioClipLoader.Queue(sound);
+		}
+	}
+
+	internal void DestroySounds() {
+		foreach(SoundInstance sound in Sounds) {
+			if(sound.Clip) Object.Destroy(sound.Clip);
 		}
 	}
 

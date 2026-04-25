@@ -22,6 +22,7 @@ static class Debuggers {
 	internal static DebugLogSource AudioClipSpoofing;
 
 	internal static DebugLogSource NativeBackend;
+	internal static DebugLogSource HotReload;
 
 	internal static void Bind(ConfigFile file) {
 		foreach(FieldInfo fieldInfo in typeof(Debuggers).GetFields(BindingFlags.Static | BindingFlags.NonPublic)) {

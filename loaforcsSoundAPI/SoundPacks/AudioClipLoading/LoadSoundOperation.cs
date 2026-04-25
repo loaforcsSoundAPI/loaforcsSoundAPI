@@ -1,4 +1,6 @@
-﻿using loaforcsSoundAPI.SoundPacks.Data;
+﻿using System.Threading.Tasks;
+using loaforcsSoundAPI.Core.Util.Extensions;
+using loaforcsSoundAPI.SoundPacks.Data;
 using UnityEngine.Networking;
 
 namespace loaforcsSoundAPI.SoundPacks.AudioClipLoading;
@@ -11,4 +13,8 @@ class LoadSoundOperation(
 	public bool IsReady => WebRequest.isDone;
 	public bool IsDone { get; set; }
 	public readonly SoundInstance Sound = soundInstance;
+
+	public async Task WaitUntilReadyAsync() {
+		await webRequest;
+	}
 }

@@ -117,7 +117,7 @@ public class SoundPack : IValidatable, IDeserializationCallback, IFilePathAware 
 
 	public void OnDeserialized() {
 		PackFolder = Path.GetDirectoryName(FilePath);
-		Replacers = new Registry<SoundReplacementCollection>(this, "replacers");
+		Replacers = new ReplacementsRegistry(this, "replacers");
 	}
 
 	public string FilePath { get; set; }

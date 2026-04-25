@@ -80,6 +80,10 @@ static class SoundPackLoadPipeline {
 		foreach(SoundPack pack in packs) {
 			pack.Replacers.Load();
 
+			if(PackLoadingConfig.EnableHotReloading) {
+				pack.Replacers.EnableHotReload();
+			}
+
 			// Step 4: Enter foreach hell and fire async methods to begin UWR calls to load sounds.
 			foreach(SoundReplacementCollection collection in pack.Replacers) {
 				if(collection.ShouldSkip()) {
