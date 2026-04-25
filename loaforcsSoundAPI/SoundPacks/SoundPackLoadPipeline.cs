@@ -14,6 +14,7 @@ using loaforcsSoundAPI.Core.Data;
 using loaforcsSoundAPI.Core.JSON;
 using loaforcsSoundAPI.Core.Util;
 using loaforcsSoundAPI.Reporting;
+using loaforcsSoundAPI.SoundPacks.AudioClipLoading;
 using loaforcsSoundAPI.SoundPacks.Data;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 using Newtonsoft.Json;
@@ -30,12 +31,8 @@ static class SoundPackLoadPipeline {
 	internal static event Action OnFinishedPipeline = delegate { };
 	internal static Dictionary<string, List<string>> mappings = [ ];
 
-	// todo: probably change this to be else where? soundinstance needs this for validation.
-	internal static Dictionary<string, AudioType> audioExtensions = new Dictionary<string, AudioType> {
-		{ ".ogg", AudioType.OGGVORBIS },
-		{ ".wav", AudioType.WAV },
-		{ ".mp3", AudioType.MPEG }
-	};
+	[Obsolete("Moved to IAudioClipLoader.audioExtensions")]
+	internal static Dictionary<string, AudioType> audioExtensions => IAudioClipLoader.audioExtensions;
 
 	class SkippedResults {
 		public int Collections;
@@ -57,8 +54,6 @@ static class SoundPackLoadPipeline {
 		timer.Restart();
 
 		// Step 2: Load mappings
-		List<LoadSoundOperation> webRequestOperations = [ ];
-
 		// todo: function
 		foreach(SoundPack pack in packs) {
 			string mappingFile = Path.Combine(pack.PackFolder, "soundapi_mappings.json");
@@ -79,6 +74,8 @@ static class SoundPackLoadPipeline {
 		timer.Restart();
 
 		SkippedResults skippedStats = new SkippedResults();
+		MultithreadedAudioClipLoader audioClipLoader = new MultithreadedAudioClipLoader();
+
 		// Step 3: Load registries data and begin loading audio
 		foreach(SoundPack pack in packs) {
 			pack.Replacers.Load();
@@ -105,7 +102,7 @@ static class SoundPackLoadPipeline {
 							continue;
 						}
 
-						webRequestOperations.Add(StartWebRequestOperation(pack, soundReplacement, audioExtensions[Path.GetExtension(soundReplacement.Sound)]));
+						audioClipLoader.Queue(soundReplacement);
 					}
 				}
 			}
@@ -113,7 +110,7 @@ static class SoundPackLoadPipeline {
 
 		#region boring other stuff
 
-		int amountOfOperations = webRequestOperations.Count;
+		int amountOfOperations = audioClipLoader.Count;
 		loaforcsSoundAPI.Logger.LogInfo($"(Step 3) Skipped {skippedStats.Collections} collection(s), {skippedStats.Groups} replacement(s), {skippedStats.Sounds} sound(s)");
 		loaforcsSoundAPI.Logger.LogInfo($"(Step 3) Loading sound replacement collections took {timer.ElapsedMilliseconds}ms");
 		if(SoundReportHandler.CurrentReport != null) SoundReportHandler.CurrentReport.AudioClipsLoaded = amountOfOperations;
@@ -128,75 +125,13 @@ static class SoundPackLoadPipeline {
 		timer.Restart();
 		completeLoadingTimer.Start(); // unpause
 
-		// Display some info to the users so they know their game hasn't crashed.
-		bool displayedHalfwayMessage = false;
-		bool threadsShouldExit = false;
-
-		ConcurrentQueue<LoadSoundOperation> queuedOperations = new ConcurrentQueue<LoadSoundOperation>();
-		ConcurrentBag<Exception> threadPoolExceptions = [ ];
-
-		// TODO: fix me, this is not good logic.
-		for(int i = 0; i < 16; i++) {
-			new Thread(() => {
-				LoadSoundOperation operation;
-				while(queuedOperations.Count == 0 && !threadsShouldExit) {
-					Thread.Yield();
-				}
-
-				Interlocked.Increment(ref _activeThreads);
-				Debuggers.SoundReplacementLoader?.Log($"active threads at {_activeThreads}");
-
-				while(queuedOperations.TryDequeue(out operation)) {
-					try {
-						AudioClip clip = DownloadHandlerAudioClip.GetContent(operation.WebRequest);
-						operation.Sound.Clip = clip;
-						operation.WebRequest.Dispose();
-						Debuggers.SoundReplacementLoader?.Log("clip generated");
-
-						operation.IsDone = true;
-					} catch(Exception exception) {
-						threadPoolExceptions.Add(exception);
-					}
-				}
-
-				Interlocked.Decrement(ref _activeThreads);
-			}).Start();
-		}
-
-		// Step 5: Block game from progressing until all audio is loaded
-		while(webRequestOperations.Count > 0) {
-			foreach(LoadSoundOperation operation in webRequestOperations.ToList().Where(operation => operation.IsReady)) { // .ToList() here is so we can modify the current list without causing an exception
-				queuedOperations.Enqueue(operation); // give to threads to do work
-				webRequestOperations.Remove(operation);
-			}
-
-			if(!displayedHalfwayMessage && webRequestOperations.Count < amountOfOperations / 2) {
-				displayedHalfwayMessage = true;
-				loaforcsSoundAPI.Logger.LogInfo($"(Step 5) Queued half of the needed operations!");
-			}
-
-			Thread.Yield(); // this has to be Thread.Sleep instead of Task.Delay because this needs to be blocking
-		}
-
-		loaforcsSoundAPI.Logger.LogInfo($"(Step 5) All file reads are done, waiting for the audio clips conversions.");
-		threadsShouldExit = true;
-
-		// Step 6: Wait.
-		while(_activeThreads > 0 || webRequestOperations.Any(operation => !operation.IsDone)) {
-			Thread.Yield();
-		}
-
-		loaforcsSoundAPI.Logger.LogInfo($"(Step 6) Took {timer.ElapsedMilliseconds}ms to finish loading audio clips from files");
-		if(threadPoolExceptions.Count != 0) {
-			loaforcsSoundAPI.Logger.LogError($"(Step 6) {threadPoolExceptions.Count} internal error(s) happened while loading:");
-			foreach(Exception poolException in threadPoolExceptions) {
-				loaforcsSoundAPI.Logger.LogError(poolException.ToString());
-			}
-		}
+		// Step 5 & 6 are contained within here,
+		// it would probably be nice to actually have a better way to order steps instead of hardcoding it in the log messages
+		audioClipLoader.LoadAllBlocking();
 
 		#endregion
 
-		// Step 8: Fire event and final cleanup
+		// Step 7: Fire event and final cleanup
 		OnFinishedPipeline();
 		mappings = null;
 

@@ -1,9 +1,7 @@
-﻿using System.Runtime.CompilerServices;
-using loaforcsSoundAPI.SoundPacks.Data;
-using UnityEngine;
+﻿using loaforcsSoundAPI.SoundPacks.Data;
 using UnityEngine.Networking;
 
-namespace loaforcsSoundAPI.SoundPacks;
+namespace loaforcsSoundAPI.SoundPacks.AudioClipLoading;
 
 class LoadSoundOperation(
 	SoundInstance soundInstance,
