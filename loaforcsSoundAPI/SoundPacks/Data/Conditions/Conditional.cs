@@ -34,7 +34,7 @@ public abstract class Conditional : IValidatable, IPackData, IRegistrationCallba
 
 	internal bool ShouldSkip() {
 		if(Condition is ConstantCondition constant) {
-			return constant.Value;
+			return !constant.Value;
 		}
 
 		return false;
