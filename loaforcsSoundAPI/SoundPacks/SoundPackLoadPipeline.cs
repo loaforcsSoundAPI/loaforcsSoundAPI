@@ -34,7 +34,7 @@ static class SoundPackLoadPipeline {
 	[Obsolete("Moved to IAudioClipLoader.audioExtensions")]
 	internal static Dictionary<string, AudioType> audioExtensions => IAudioClipLoader.audioExtensions;
 
-	class SkippedResults {
+	internal class SkippedResults {
 		public int Collections;
 		public int Groups;
 		public int Sounds;
@@ -94,16 +94,7 @@ static class SoundPackLoadPipeline {
 					}
 
 					SoundPackDataHandler.AddReplacement(replacementGroup);
-
-					// finally actually load sounds!
-					foreach(SoundInstance soundReplacement in replacementGroup.Sounds) {
-						if(soundReplacement.ShouldSkip()) {
-							skippedStats.Sounds++;
-							continue;
-						}
-
-						audioClipLoader.Queue(soundReplacement);
-					}
+					replacementGroup.QueueSounds(audioClipLoader, skippedStats);
 				}
 			}
 		}

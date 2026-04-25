@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using loaforcsSoundAPI.Core.Data;
+using loaforcsSoundAPI.SoundPacks.AudioClipLoading;
 using loaforcsSoundAPI.SoundPacks.Data.Conditions;
 using Newtonsoft.Json;
 
@@ -43,6 +44,17 @@ public class SoundReplacementGroup : Conditional, IValidatable {
 
 		Matches.Clear();
 		Matches.AddRange(corrected);
+	}
+
+	internal void QueueSounds(IAudioClipLoader audioClipLoader, SoundPackLoadPipeline.SkippedResults results = null) {
+		foreach(SoundInstance sound in Sounds) {
+			if(sound.ShouldSkip()) {
+				if(results != null) results.Sounds++;
+				continue;
+			}
+
+			audioClipLoader.Queue(sound);
+		}
 	}
 
 	public override List<IValidatable.ValidationResult> Validate() {
