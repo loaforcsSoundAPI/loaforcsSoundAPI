@@ -47,4 +47,12 @@ static class SoundPackDataHandler {
 			SoundReplacements[clipName] = existingGroups;
 		}
 	}
+
+	internal static void RemoveReplacement(SoundReplacementGroup group) {
+		foreach(string match in group.Matches) {
+			string clipName = match.Split(":").Last();
+
+			SoundReplacements[clipName].Remove(group);
+		}
+	}
 }
