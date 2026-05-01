@@ -63,3 +63,6 @@
 
 ## 2.0.10
 - Fixes [an issue](https://github.com/loaforcsSoundAPI/loaforcsSoundAPI/issues/36) where the HarmonyX backend did not work in REPO.
+
+## 2.0.11
+- Fixes an issue where SoundAPI could only replace the same audio clip on the same audio source once.
