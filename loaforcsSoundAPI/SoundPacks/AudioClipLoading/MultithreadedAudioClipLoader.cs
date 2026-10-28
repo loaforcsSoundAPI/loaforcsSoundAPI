@@ -29,7 +29,9 @@ class MultithreadedAudioClipLoader : IAudioClipLoader {
 	public void LoadAllBlocking() {
 		Stopwatch timer = Stopwatch.StartNew();
 
-		for(int i = 0; i < 16; i++) {
+		bool useThreads = !UnityEngine.Debug.isDebugBuild;
+
+		for(int i = 0; i < 16 && useThreads; i++) {
 			new Thread(() => {
 				LoadSoundOperation operation;
 				while(_queuedOperations.Count == 0 && !_threadsShouldExit) {
@@ -40,16 +42,7 @@ class MultithreadedAudioClipLoader : IAudioClipLoader {
 				Debuggers.SoundReplacementLoader?.Log($"active threads at {_activeThreads}");
 
 				while(_queuedOperations.TryDequeue(out operation)) {
-					try {
-						AudioClip clip = DownloadHandlerAudioClip.GetContent(operation.WebRequest);
-						operation.Sound.Clip = clip;
-						operation.WebRequest.Dispose();
-						Debuggers.SoundReplacementLoader?.Log("clip generated");
-
-						operation.IsDone = true;
-					} catch(Exception exception) {
-						_threadPoolExceptions.Add(exception);
-					}
+					ProcessOperation(operation);
 				}
 
 				Interlocked.Decrement(ref _activeThreads);
@@ -58,7 +51,12 @@ class MultithreadedAudioClipLoader : IAudioClipLoader {
 
 		while(_webRequestOperations.Count > 0) {
 			foreach(LoadSoundOperation operation in _webRequestOperations.ToList().Where(operation => operation.IsReady)) { // .ToList() here is so we can modify the current list without causing an exception
-				_queuedOperations.Enqueue(operation); // give to threads to do work
+				if(useThreads) {
+					_queuedOperations.Enqueue(operation); // give to threads to do work
+				} else {
+					ProcessOperation(operation);
+				}
+
 				_webRequestOperations.Remove(operation);
 			}
 
@@ -82,6 +80,19 @@ class MultithreadedAudioClipLoader : IAudioClipLoader {
 			foreach(Exception poolException in _threadPoolExceptions) {
 				loaforcsSoundAPI.Logger.LogError(poolException.ToString());
 			}
+		}
+	}
+
+	void ProcessOperation(LoadSoundOperation operation) {
+		try {
+			AudioClip clip = DownloadHandlerAudioClip.GetContent(operation.WebRequest);
+			operation.Sound.Clip = clip;
+			operation.WebRequest.Dispose();
+			Debuggers.SoundReplacementLoader?.Log("clip generated");
+
+			operation.IsDone = true;
+		} catch(Exception exception) {
+			_threadPoolExceptions.Add(exception);
 		}
 	}
 
